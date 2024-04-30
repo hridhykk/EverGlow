@@ -58,6 +58,14 @@ const orderSchema = new Schema({
         enum: ['Pending', 'Success', 'Failed'],
         default: 'Pending',
       },
+      couponapplied:{
+        type:Boolean,
+        default:false
+      },
+      discountPrice:{
+        type: Number,
+        default: 0,
+     },
       deliveryAddress: {
         type: {
           addressType: String,

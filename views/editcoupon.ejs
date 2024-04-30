@@ -1,0 +1,354 @@
+<%-include('adminheader')%>
+
+    <main class="main-wrap">
+        <header class="main-header navbar">
+            <div class="col-search">
+                <!-- Add this HTML code where you want the search bar to appear -->
+<!-- <form action="/admin/user" method="GET">
+    <input type="text" name="searchTerm" placeholder="Search users" >
+    <button type="submit">search</button>
+</form> -->
+
+                <!-- <form class="searchform">
+                    <div class="input-group">
+                        <input list="search_terms" type="text" class="form-control" placeholder="Search term">
+                        <button class="btn btn-light bg" type="button"> <i class="material-icons md-search"></i></button>
+                    </div>
+                    <datalist id="search_terms">
+                        <option value="Products">
+                        <option value="New orders">
+                        <option value="Apple iphone">
+                        <option value="Ahmed Hassan">
+                    </datalist>
+                </form> -->
+            </div>
+            <div class="col-nav">
+                <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a class="nav-link btn-icon" href="#">
+                            <i class="material-icons md-notifications animation-shake"></i>
+                            <span class="badge rounded-pill">3</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-icon darkmode" href="#"> <i class="material-icons md-nights_stay"></i> </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="requestfullscreen nav-link btn-icon"><i class="material-icons md-cast"></i></a>
+                    </li>
+                    <li class="dropdown nav-item">
+                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownLanguage" aria-expanded="false"><i class="material-icons md-public"></i></a>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownLanguage">
+                            <a class="dropdown-item text-brand" href="#"><img src="adminassets/imgs/theme/flag-us.png" alt="English">English</a>
+                            <a class="dropdown-item" href="#"><img src="adminassets/imgs/theme/flag-fr.png" alt="Français">Français</a>
+                            <a class="dropdown-item" href="#"><img src="adminassets/imgs/theme/flag-jp.png" alt="Français">日本語</a>
+                            <a class="dropdown-item" href="#"><img src="adminassets/imgs/theme/flag-cn.png" alt="Français">中国人</a>
+                        </div>
+                    </li>
+                    <li class="dropdown nav-item">
+                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="assets/imgs/people/avatar2.jpg" alt="User"></a>
+                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
+                            <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a>
+                            <a class="dropdown-item" href="#"><i class="material-icons md-settings"></i>Account Settings</a>
+                            <a class="dropdown-item" href="#"><i class="material-icons md-account_balance_wallet"></i>Wallet</a>
+                            <a class="dropdown-item" href="#"><i class="material-icons md-receipt"></i>Billing</a>
+                            <a class="dropdown-item" href="#"><i class="material-icons md-help_outline"></i>Help center</a>
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item text-danger" href="#"><i class="material-icons md-exit_to_app"></i>Logout</a>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </header>
+        <section class="content-main">
+            <div class="content-header">
+                <h2 class="content-title">Users list</h2>
+                
+            </div>
+            <div class="card mb-4">
+    <!-- card-header end// -->
+  <div id="alertContainer" class="position-fixed top-15 end-10" style="z-index: 5"></div>
+<div class="message-box" id="messageBox"></div>
+
+<div class="row m-3">
+    <form id="editCouponForm" action="" method="post" onsubmit="return submitForm(event)">
+        <div class="form-row d-flex mb-3">
+            <div class="form-group col-md-6">
+                <label for="code" class="text-right">Coupon Code</label>
+            </div>
+            <div class="form-group col-md-6">
+                <input type="text" value="<%= coupon.code %>" class="form-control" id="code" name="code" required>
+                <span id="codeError" class="error-message text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row d-flex mb-3">
+            <div class="form-group col-md-6">
+                <label for="description" class="text-right">Description</label>
+            </div>
+            <div class="form-group col-md-6">
+                <textarea class="form-control" id="description" name="description" required><%= coupon.description %></textarea>
+                <span id="descriptionError" class="error-message text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row d-flex mb-3">
+            <div class="form-group col-md-6">
+                <label for="discountPercentage" class="text-right">Discount Percentage</label>
+            </div>
+            <div class="form-group col-md-6">
+                <input type="text" value="<%= coupon.discountPercentage %>" class="form-control" id="discountPercentage" name="discountPercentage">
+                <span id="discountPercentageError" class="error-message text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row d-flex mb-3">
+            <div class="form-group col-md-6">
+                <label for="minimumAmount" class="text-right">Minimum Purchase Amount</label>
+            </div>
+            <div class="form-group col-md-6">
+                <input type="number" value="<%= coupon.minimumAmount %>" class="form-control" id="minimumAmount" name="minimumAmount" required>
+                <span id="minimumAmountError" class="error-message text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row d-flex mb-3">
+            <div class="form-group col-md-6">
+                <label for="maximumAmount" class="text-right">Maximum Amount</label>
+            </div>
+            <div class="form-group col-md-6">
+                <input type="number" value="<%= coupon.maximumAmount %>" class="form-control" id="maximumAmount" name="maximumAmount" required>
+                <span id="maximumAmountError" class="error-message text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row d-flex mb-3">
+            <div class="form-group col-md-6">
+                <label for="expirationDate" class="text-right">Expiration Date</label>
+            </div>
+            <div class="form-group col-md-6">
+                <input type="date" value="<%= coupon.expirationDate %>" class="form-control" id="expirationDate" name="expirationDate" required>
+                <span id="expirationDateError" class="error-message text-danger"></span>
+            </div>
+        </div>
+        <div class="form-row d-flex mb-3">
+            <div class="form-group col-md-6">
+                <label for="maxUsers" class="text-right">Maximum Users Allowed</label>
+            </div>
+            <div class="form-group col-md-6">
+                <input type="number" value="<%= coupon.maxUsers %>" class="form-control" id="maxUsers" name="maxUsers">
+                <span id="maxUsersError" class="error-message text-danger"></span>
+            </div>
+        </div>
+        
+
+       
+        <!-- Repeat this pattern for other input fields -->
+    
+        <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+    </form>
+    
+</div>
+ <!-- card end// -->
+<!--  -->
+
+
+    // <!-- <script>
+    //     async function blockuser(id){
+    //         let response = await fetch('/admin/blockuser',{
+    //             method:'post',
+    //             headers:{
+    //                 'content-type':'application/json' },
+    //             body: JSON.stringify({id })
+    //         })
+    //         if(response.status === 200){
+    //             document.getElementById('blockedbutton_'+ id).className = 'btn btn-danger'
+    //             document.getElementById('blockbutton_'+id).innerHTML = 'block'
+    //         }else if (response.status === 201) {
+    //            document.getElementById('blockbutton_' + id).className = 'btn btn-success'
+    //            document.getElementById('blockbutton_' + id).innerHTML = 'Unblock'
+    //         } else if (response.status === 402) {
+    //            window.location.reload()
+    //         }
+    //     }
+    // </script> -->
+    <script src="adminassets/js/vendors/jquery-3.6.0.min.js"></script>
+    <script src="adminassets/js/vendors/bootstrap.bundle.min.js"></script>
+    <script src="adminassets/js/vendors/select2.min.js"></script>
+    <script src="adminassets/js/vendors/perfect-scrollbar.js"></script>
+    <script src="adminassets/js/vendors/jquery.fullscreen.min.js"></script>
+    <!-- Main Script -->
+    <script src="adminassets/js/main.js" type="text/javascript"></script>
+
+    <script>
+        function getElementValue(id) {
+            const element = document.getElementById(id);
+            return element.value.trim();
+        }
+    
+        function validateInput(inputId, pattern, errorId, errorMessage) {
+            const inputValue = getElementValue(inputId);
+            const errorElement = document.getElementById(errorId);
+    
+            if (inputValue === '') {
+                errorElement.innerText = errorMessage + ' is required.';
+                return false;
+            } else if (pattern && !pattern.test(inputValue)) {
+                errorElement.innerText = 'Please enter a valid ' + errorMessage.toLowerCase() + '.';
+                return false;
+            } else {
+                errorElement.innerText = '';
+                return true;
+            }
+        }
+    
+        function validateDescription() {
+            return validateInput('description', null, 'descriptionError', 'Description');
+        }
+    
+        function validateDiscountPercentage() {
+            const discountPercentage = getElementValue('discountPercentage');
+            const errorElement = document.getElementById('discountPercentageError');
+    
+            if (discountPercentage === '') {
+                errorElement.innerText = 'Discount percentage is required.';
+                return false;
+            }
+    
+            const percentage = parseFloat(discountPercentage);
+            if (isNaN(percentage) || percentage < 0 || percentage > 100) {
+                errorElement.innerText = 'Discount percentage must be between 0 and 100.';
+                return false;
+            } else {
+                errorElement.innerText = '';
+                return true;
+            }
+        }
+    
+        function validateMinimumAmount() {
+            return validateInput('minimumAmount', /^(0*[1-9]\d*)$/, 'minimumAmountError', 'Minimum purchase amount');
+        }
+    
+        function validateMaximumAmount() {
+            return validateInput('maximumAmount', /^(0*[1-9]\d*)$/, 'maximumAmountError', 'Maximum amount');
+        }
+    
+        function validateExpirationDate() {
+            const expirationDate = getElementValue('expirationDate');
+            const errorElement = document.getElementById('expirationDateError');
+    
+            if (expirationDate === '') {
+                errorElement.innerText = 'Expiration date is required.';
+                return false;
+            }
+    
+            const currentDate = new Date();
+            const selectedDate = new Date(expirationDate);
+    
+            if (selectedDate < currentDate) {
+                errorElement.innerText = 'Expiration date must be greater than the current date.';
+                return false;
+            } else {
+                errorElement.innerText = '';
+                return true;
+            }
+        }
+    
+        function validateMaxUsers() {
+            return validateInput('maxUsers', /^\d{1,7}$/, 'maxUsersError', 'Maximum users allowed');
+        }
+    
+        function validateCouponCode() {
+            return validateInput('code', /^[a-zA-Z0-9]{1,7}$/, 'codeError', 'Coupon code');
+        }
+    
+        function clearErrorMessage(event) {
+            const input = event.target;
+            const errorElement = document.getElementById(input.id + 'Error');
+            errorElement.innerText = '';
+        }
+    
+        document.addEventListener('DOMContentLoaded', function () {
+            const descriptionInput = document.getElementById('description');
+            const discountPercentageInput = document.getElementById('discountPercentage');
+            const minimumAmountInput = document.getElementById('minimumAmount');
+            const maximumAmountInput = document.getElementById('maximumAmount');
+            const expirationDateInput = document.getElementById('expirationDate');
+            const maxUsersInput = document.getElementById('maxUsers');
+            const codeInput = document.getElementById('code');
+    
+            descriptionInput.addEventListener('blur', validateDescription);
+            discountPercentageInput.addEventListener('blur', validateDiscountPercentage);
+            minimumAmountInput.addEventListener('blur', validateMinimumAmount);
+            maximumAmountInput.addEventListener('blur', validateMaximumAmount);
+            expirationDateInput.addEventListener('blur', validateExpirationDate);
+            maxUsersInput.addEventListener('blur', validateMaxUsers);
+            codeInput.addEventListener('blur', validateCouponCode);
+    
+            const inputs = [
+                descriptionInput, discountPercentageInput, minimumAmountInput,
+                maximumAmountInput, expirationDateInput, maxUsersInput, codeInput
+            ];
+    
+            inputs.forEach(input => {
+                input.addEventListener('focus', clearErrorMessage);
+            });
+        });
+    
+        function validateAmounts() {
+            const minimumAmount = parseFloat(getElementValue('minimumAmount'));
+            const maximumAmount = parseFloat(getElementValue('maximumAmount'));
+            const minimumAmountError = document.getElementById('minimumAmountError');
+            const maximumAmountError = document.getElementById('maximumAmountError');
+    
+            if (minimumAmount >= maximumAmount) {
+                minimumAmountError.innerHTML = 'Minimum amount must be less than maximum amount.';
+                maximumAmountError.innerHTML = 'Maximum amount must be greater than minimum amount.';
+                return false;
+            } else {
+                minimumAmountError.innerHTML = '';
+                maximumAmountError.innerHTML = '';
+                return true;
+            }
+        }
+    
+        function submitForm(event) {
+            const formFields = document.querySelectorAll('input[type="text"], input[type="number"], textarea');
+            let isValid = true;
+    
+            formFields.forEach(field => {
+                const inputValue = field.value.trim();
+                const errorElement = document.getElementById(field.id + 'Error');
+    
+                if (inputValue === '') {
+                    errorElement.innerText = 'This field is required.';
+                    isValid = false;
+                } else {
+                    errorElement.innerText = '';
+                }
+            });
+    
+            if (!isValid) {
+                event.preventDefault();
+                document.getElementById('messageBox').innerText = 'Please correct the fields.';
+                return false;
+            }
+    
+            isValid = validateDescription() && validateDiscountPercentage() &&
+                validateMinimumAmount() && validateMaximumAmount() &&
+                validateExpirationDate() && validateMaxUsers() && validateCouponCode() && validateAmounts();
+    
+            if (!isValid) {
+                event.preventDefault();
+                document.getElementById('messageBox').innerText = 'Please correct the fields.';
+                return false;
+            }
+    
+            return isValid;
+        }
+    </script>
+    
+    
+    
+</body>
+
+
+</html>

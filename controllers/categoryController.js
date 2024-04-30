@@ -1,6 +1,6 @@
 const session = require('express-session');
 const Category = require('../models/categoryModel');
-
+const Product = require('../models/productModel');
 const { check, validationResult } = require("express-validator")
 
 
@@ -129,5 +129,69 @@ const categoryload = async(req,res)=>{
   }
  }
 
+
+
+ const categoryofferpage = async(req,res)=>{
+  try{
+    const category = await Category.find();
+    const currentDate = new Date();
+ res.render('categoryofferpage',{category,currentDate})
+  }catch(error){
+    console.log(error.message)
+
+  }
+ }
+ const categoryoffer = async (req, res) => {
+  try {
+      const discountPercentage = req.body.discountPercentage;
+      const expirationDate = req.body.expirationDate;
+      const id = req.body.id;
+    
+  
+       await  Category.findByIdAndUpdate({_id:id},{$set:{categoryofferApplied:true,categoryofferexp:expirationDate,categorydiscountPercentage:discountPercentage}})
+      const products = await Product.find({ category: id });
+      
+      if (products.length > 0) {
+          for (const product of products) {
+              const originalPrice = product.price;
+              const discountAmount = (originalPrice * discountPercentage) / 100;
+              const price = originalPrice - discountAmount;
+            
+              product.categoryofferPrice = price;
+              product.categoryofferexp = expirationDate;
+              product.categoryofferApplied = true;
+
+              await product.save();
+          }
+
+          res.redirect('/admin/categoryofferpage');
+      } else {
+          res.status(404).send("Products not found for the given category");
+      }
+  } catch (error) {
+      console.log(error.message);
+      res.status(500).send("Internal Server Error");
+  }
+}
+
+
+const removecategoryoffer = async(req,res)=>{
+  try{
+    console.log("hello2")
+    const id = req.query.id;
+    
+ await Category.findByIdAndUpdate({_id:id},{$set:{
+  categoryofferApplied:false,
+ 
+  categorydiscountPercentage:0
+  
+ }});
+ res.json({success:true});
+  }catch(error){
+    console.log(error.message)
+  }
+}
+
+
 module.exports={
- categoryload,addcategorypage,insertcategory,editcategorypage,updatecategory,deletecategory}
+ categoryload,addcategorypage,insertcategory,editcategorypage,updatecategory,deletecategory,categoryofferpage,categoryoffer,removecategoryoffer}

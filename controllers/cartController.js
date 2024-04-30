@@ -9,9 +9,15 @@ const randomstring = require('randomstring');
 const Order = require('../models/orderModel');
 const Coupon = require('../models/couponModel');
 const Razorpay = require('razorpay')
+const Wishlist =require('../models/wishlistModel');
+
 const crypto = require('crypto');
+
+
+
 const cartload = async (req, res) => {
   try {
+    console.log('nd')
     const userId = req.session.user_id; 
     const productId = req.query.id;
 
@@ -47,7 +53,9 @@ const cartload = async (req, res) => {
         productPrice: product.price,
         quantity: 1,
         price: product.price,
-        selected: false
+        selected: false,
+        couponapplied:false,
+        discountPrice:0,
       });
       cart.billTotal += product.price;
     }
@@ -66,10 +74,12 @@ const cartload = async (req, res) => {
 
 const cartpageload = async(req,res)=>{
   try{
+    const coupon = await Coupon.find();
+    const user = req.session.user_id;
     const cart = await Cart.findOne({ owner: req.session.user_id }).populate({path:'items.productId',model:'Product'})
-   
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
 
-    res.render('cart',{cart})
+    res.render('cart',{cart,coupon,user,wishlist});
   }
   catch(error){
     console.log(error.message)
@@ -123,7 +133,6 @@ const updateQuantity = async (req, res) => {
 
 
 
-
 const deletecartitem = async (req, res) => {
   try {
     const id = req.query.id;
@@ -138,8 +147,15 @@ const deletecartitem = async (req, res) => {
         const deletedItem = cart.items[itemIndex];
         cart.items.splice(itemIndex, 1);
 
-  
-        cart.billTotal -= (deletedItem.productPrice * (deletedItem.quantity));
+        if (cart.couponapplied) {
+          cart.discountPrice = 0;
+          cart.couponapplied = false;
+          cart.billTotal -= (deletedItem.productPrice + cart.discountPrice) * deletedItem.quantity;
+         
+      } else {
+          cart.billTotal -= deletedItem.productPrice * deletedItem.quantity;
+      }
+      
 
         await cart.save();
 
@@ -168,57 +184,14 @@ const checkoutpage = async(req,res)=>{
 const id = req.session.user_id
 const address = await Address.find({user:id});
 const cart = await Cart.findOne({owner:req.session.user_id})
- res.render('checkout',{cart,address})
+const wishlist = await Wishlist .findOne({user:req.session.user_id});
+ res.render('checkout',{cart,address,wishlist})
   }catch(error){
     console.log(error.message)
   }
 }
 
 
-
-// const orderload = async (req, res) => {
-//     try {
-      
-//         const {
-//             user,
-//             cart,
-//             oId,
-//             items,
-//             billTotal,
-//             paymentMethod,
-//             paymentStatus,
-//             deliveryAddress,
-//             orderDate,
-//             status,
-//             reason,
-//             requests
-//         } = req.body;
-//          const newOrder = new Order({
-//             user,
-//             cart,
-//             oId,
-//             items,
-//             billTotal,
-//             paymentMethod,
-//             paymentStatus,
-//             deliveryAddress,
-//             orderDate,
-//             status,
-//             reason,
-//             requests
-//         });
-
-       
-//         await newOrder.save();
-
-      
-//         return res.status(201).json({ success: true, message: 'Order saved successfully' });
-//     } catch (error) {
-      
-//         console.error(error);
-//         return res.status(500).json({ success: false, message: 'Internal server error' });
-//     }
-// };
 
 function generateoId(){
   const oId = randomstring.generate({
@@ -240,23 +213,29 @@ function generateoId(){
     
     if(req.body.paymentMethod=== "online"){
       
-        const order = await instance.orders.create({
-          amount: cart.billTotal*100,
-          currency: "INR",
-          receipt: cart._id, 
-        
+      let amount;
+      if (cart.couponapplied === true) {
+        amount = cart.discountPrice * 100;
+      } else {
+        amount = cart.billTotal * 100;
+      }
+
+      const order = await instance.orders.create({
+        amount: amount,
+        currency: "INR",
+        receipt: cart._id
       });
 
    
       res.json({status: "online", order: order});
 
     }else if(req.body.paymentMethod==="COD"){
-   console.log("dfkdsjfbdskh")
-   console.log(req.body.deliveryAddress)
+  
+ 
 
    const cart = await Cart.findOne({ owner: req.session.user_id });
     const oId = generateoId();
-    const { items, billTotal } = cart;
+    const { items, billTotal,discountPrice ,couponapplied} = cart;
       const user = req.session.user_id;
       const { paymentMethod, deliveryAddress } = req.body;
       const parsedDeliveryAddress = JSON.parse(deliveryAddress);
@@ -267,6 +246,8 @@ function generateoId(){
           oId,
           items,
           billTotal,
+          discountPrice,
+          couponapplied,
           paymentMethod,
           deliveryAddress: parsedDeliveryAddress 
       });
@@ -286,7 +267,7 @@ function generateoId(){
       await cart.save();
       await newOrder.save();
 
-  res.json({status: "COD",message:"order added successfuly",cart:cart});
+  res.json({status: "COD",message:"order added successfuly",cart:cart,oId:oId});
   }else{
     console.log("errorr")
   }
@@ -296,10 +277,13 @@ function generateoId(){
   }
 };
 
+
+
+
+
  const orderonlineload = async (req,res)=>{
   try{
-  console.log(req.body.paymentData);
- console.log(req.body.paymentData.razorpay_signature);
+  
   const razorpaySecret = "4zspRlSBEVt30znhYdnWTJ5L";
  const body = req.body.paymentData.razorpay_order_id + "|" + req.body.paymentData.razorpay_payment_id;
 
@@ -314,15 +298,76 @@ function generateoId(){
       const parsedDeliveryAddress = JSON.parse(deliveryAddress);
        const cart = await Cart.findOne({owner:req.session.user_id})
        const user = req.session.user_id
-       const { items, billTotal } = cart;
+       const { items, billTotal,discountPrice,couponapplied } = cart;
       const newOrder = new Order({
           user,
           cart: cart._id, 
           oId: req.body.paymentData.razorpay_order_id ,
           items,
           billTotal,
+          discountPrice,
+          couponapplied,
           paymentMethod:"online",
-          paymentStatus:"success",
+          paymentStatus:"Success",
+          status:'Success',
+          deliveryAddress: parsedDeliveryAddress 
+      });
+      
+      for (const item of cart.items) {
+        const productId = item.productId;
+        const quantity = item.quantity;
+        const product = await Product.findById(productId);
+        product.countinstock -= quantity;
+
+        await product.save();
+    }
+    cart.items = []; 
+    cart.billTotal = 0;
+    cart.couponapplied = false;
+    cart.discountPrice = 0;
+    console.log(cart._id );
+      await cart.save();
+      await newOrder.save();
+
+
+  res.json({success:true,message:"order added successfuly", oId:req.body.paymentData.razorpay_order_id});
+
+
+
+    } else {
+      console.log("Incorrect Signature");
+     
+    }
+  }catch(error){
+    console.log(error.message)
+  }
+ }
+
+
+
+
+
+ const orderfailed = async(req,res)=>{
+  try{
+    const deliveryAddress = req.body.paymentData.selectedAddress;
+    const parsedDeliveryAddress = JSON.parse(deliveryAddress);
+     const cart = await Cart.findOne({owner:req.session.user_id})
+     const user = req.session.user_id
+     const { items, billTotal,discountPrice,couponapplied } = cart;
+   
+    const oId = generateoId();
+  
+   
+      const newOrder = new Order({
+          user,
+          cart: cart._id, 
+          oId,
+          items,
+          billTotal,
+          discountPrice,
+          couponapplied,
+          paymentMethod:"online",
+          paymentStatus:"Pending",
           deliveryAddress: parsedDeliveryAddress 
       });
       
@@ -341,24 +386,28 @@ function generateoId(){
       await cart.save();
       await newOrder.save();
 
-  res.json({success:true,message:"order added successfuly",cart:cart});
-
-
-
-    } else {
-      console.log("Incorrect Signature");
-     
-    }
-  }catch(error){
+  res.json({success:true,message:"order added successfuly",cart:cart,oId:oId});
+  
+  }
+  catch(error){
     console.log(error.message)
   }
+
+
  }
+
+
+
+
+
+
 
 const ordersuccess = async (req,res)=>{
 try{
 
-  const id = req.session.user_id
-  const order = await Order.findOne({user:id})
+  const id = req.query.oId;
+  console.log("cart id  is this",id)
+  const order = await Order.findOne({oId:id})
  
 res.render('ordersuccess',{order})
 }catch(error){
@@ -369,33 +418,63 @@ res.render('ordersuccess',{order})
 
 const checkcoupon = async(req,res)=>{
   try{
-console.log("ndfjfdkfjr");
+
 const code = req.body.couponcode;
-console.log(code);
+const user = req.session.user_id;
+
 const cart = await Cart.findOne({owner:req.session.user_id})
 const coupons = await Coupon.findOne({code:code});
-console.log(cart); 
+const tottalamount = cart.billTotal;
+const discountPercentage = coupons.discountPercentage
+const discountAmount = (tottalamount*discountPercentage)/100;
 
-if(coupons){
-  if(coupons.isActive==true){
-  cart.billTotal -= coupons.maxDiscountAmount;
-  await cart.save();
-  console.log('coupon is verified')
-  }else{
-    console.log('coupon is inactive')
-  }
 
-}else{
-  console.log('coupon is not find')
-}
-return res.status(200).json({ success: true, message: 'Cart not found' });
+
+
+cart.discountPrice = (tottalamount-discountAmount);
+cart.couponapplied= true; 
+coupons.usersUsed.push(user);
+coupons.maxUsers--;
+await coupons.save();
+await cart.save();
+res.redirect('/cartpage')
+// return res.status(200).json({ success: true, message: 'Cart not found' });
 
   }catch(error){
     console.log(error.message)
   }
 }
 
+const removecoupon = async(req,res)=>{
+  try{
 
+const id = req.query.id;
+console.log(id)
+await Cart.findByIdAndUpdate({_id:id},{$set:{
+couponapplied:false,
+discountPrice:0,
+
+}});
+const userId = req.session.user_id;
+const Fullcoupon = await Coupon.find();
+const coupons= Fullcoupon.filter(coupon => coupon.usersUsed.includes(userId));
+ let coupon=coupons[0];
+
+
+ const userIdIndex = coupon.usersUsed.indexOf(userId);
+        if (userIdIndex !== -1) {
+            coupon.usersUsed.splice(userIdIndex, 1);
+        }
+        coupon.maxUsers++;
+        
+        await coupon.save();
+    
+        
+res.json({success:true});
+  }catch(error){
+    console.log(error.message)
+  }
+}
 
 
 
@@ -410,6 +489,8 @@ checkoutpage,
 orderload,
 ordersuccess,
 checkcoupon ,
-orderonlineload
+orderonlineload,
+orderfailed,
+removecoupon
 
 }

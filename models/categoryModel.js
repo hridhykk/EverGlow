@@ -20,7 +20,19 @@ const categorySchema= new mongoose.Schema({
     type:Boolean,
     default:1
 
+  },
+  categoryofferApplied:{
+    type:Boolean,
+    default:false,
+  } ,
+  categoryofferexp:{
+    type:Date,
+    
+  },
+  categorydiscountPercentage:{
+    type:Number
   }
+
 });
 
 module.exports=mongoose.model("Category",categorySchema);

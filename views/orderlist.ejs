@@ -77,70 +77,26 @@
         </nav>
     </aside>
     <main class="main-wrap">
-        <header class="main-header navbar">
-            <div class="col-search">
-                <!-- Add this HTML code where you want the search bar to appear -->
-<form action="/admin/user" method="GET">
-    <input type="text" name="searchTerm" placeholder="Search users" >
-    <button type="submit">search</button>
-</form>
-
-                <!-- <form class="searchform">
-                    <div class="input-group">
-                        <input list="search_terms" type="text" class="form-control" placeholder="Search term">
-                        <button class="btn btn-light bg" type="button"> <i class="material-icons md-search"></i></button>
-                    </div>
-                    <datalist id="search_terms">
-                        <option value="Products">
-                        <option value="New orders">
-                        <option value="Apple iphone">
-                        <option value="Ahmed Hassan">
-                    </datalist>
-                </form> -->
-            </div>
-            <div class="col-nav">
-                <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
-                <ul class="nav">
-                    <li class="nav-item">
-                        <a class="nav-link btn-icon" href="#">
-                            <i class="material-icons md-notifications animation-shake"></i>
-                            <span class="badge rounded-pill">3</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link btn-icon darkmode" href="#"> <i class="material-icons md-nights_stay"></i> </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="#" class="requestfullscreen nav-link btn-icon"><i class="material-icons md-cast"></i></a>
-                    </li>
-                    <li class="dropdown nav-item">
-                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownLanguage" aria-expanded="false"><i class="material-icons md-public"></i></a>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownLanguage">
-                            <a class="dropdown-item text-brand" href="#"><img src="adminassets/imgs/theme/flag-us.png" alt="English">English</a>
-                            <a class="dropdown-item" href="#"><img src="adminassets/imgs/theme/flag-fr.png" alt="Français">Français</a>
-                            <a class="dropdown-item" href="#"><img src="adminassets/imgs/theme/flag-jp.png" alt="Français">日本語</a>
-                            <a class="dropdown-item" href="#"><img src="adminassets/imgs/theme/flag-cn.png" alt="Français">中国人</a>
-                        </div>
-                    </li>
-                    <li class="dropdown nav-item">
-                        <a class="dropdown-toggle" data-bs-toggle="dropdown" href="#" id="dropdownAccount" aria-expanded="false"> <img class="img-xs rounded-circle" src="assets/imgs/people/avatar2.jpg" alt="User"></a>
-                        <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownAccount">
-                            <a class="dropdown-item" href="#"><i class="material-icons md-perm_identity"></i>Edit Profile</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-settings"></i>Account Settings</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-account_balance_wallet"></i>Wallet</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-receipt"></i>Billing</a>
-                            <a class="dropdown-item" href="#"><i class="material-icons md-help_outline"></i>Help center</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item text-danger" href="#"><i class="material-icons md-exit_to_app"></i>Logout</a>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-        </header>
+      
+       
         <section class="content-main">
             <div class="content-header">
-                <h2 class="content-title">Users list</h2>
+                <h2 class="content-title">Order List</h2>
                 
+            </div>
+            <div class="btn-group mb-4">
+                <button type="button" class="btn btn-primary" data-bs-toggle="collapse" data-bs-target="#reportDropdown" aria-expanded="false" aria-controls="reportDropdown">
+                    Generate Report
+                </button>
+                <div class="dropdown-menu collapse" id="reportDropdown">
+                    <a class="dropdown-item" href="/admin/pdfreport/?type=daily" download="sales_report.pdf" onclick="closeDropdown()">Daily Report</a>
+                    <a class="dropdown-item" href="/admin/pdfreport/?type=weekly" download="sales_report.pdf" onclick="closeDropdown()">Weekly Report</a>
+                    <a class="dropdown-item" href="/admin/pdfreport/?type=monthly" download="sales_report.pdf" onclick="closeDropdown()">Monthly Report</a>
+                    <a class="dropdown-item" href="/admin/pdfreport/?type=yearly" download="sales_report.pdf" onclick="closeDropdown()">Yearly Report</a>
+                </div>
+            </div>
+            <div class="btn-group mb-4 ms-2">
+                <a href="/admin/excel" class="btn btn-md btn-primary">Create Excel</a>
             </div>
             <div class="card mb-4">
     <!-- card-header end// -->
@@ -156,7 +112,7 @@
                         <th>Total</th>
                         <th>Order Status</th>
                         <th>Payment Method </th>
-                        <th>coupon </th>
+                       
                         <!-- <th>Registered</th> -->
                         <!-- <th class="text-end"> Action </th> -->
                     </tr>
@@ -168,9 +124,10 @@
                                 <td><%= i+1 %></td>
                                 <td><%= order[i]._id %></td>
                                 <td><%= order[i].user.name%></td>
-                                <td>Rs.<%= order[i].billTottal %></td>
-                                <td><span class="badge rounded-pill alert-warning"><%= order[i].status %></span></td>
                                 <td><%= order[i].orderDate.toDateString() %></td>
+                                <td>Rs.<%= order[i].billTotal %></td>
+                                <td><span class="badge rounded-pill alert-warning"><%= order[i].status %></span></td>
+                              
                                 <td><%= order[i].paymentMethod %></td>
                             </tr>
                         <% } %>
@@ -185,6 +142,23 @@
        
     </div> <!-- card-body end// -->
 </div> <!-- card end// -->
+<div class="pagination-area mt-15 mb-50">
+    <nav aria-label="Page navigation example">
+        <ul class="pagination justify-content-start">
+            <% if (currentPage > 1) { %>
+                <li class="page-item"><a class="page-link" href="?page=1">&laquo;</a></li>
+            <% } %>
+            <% for (let i = 1; i <= totalPages; i++) { %>
+                <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                    <a class="page-link" href="/admin/orderlist?page=<%= i %>"><%= i %></a>
+                </li>
+            <% } %>
+            <% if (currentPage < totalPages) { %>
+                <li class="page-item"><a class="page-link" href="?page=<%= totalPages %>">&raquo;</a></li>
+            <% } %>
+        </ul>
+    </nav>
+</div>
 
 </section> <!-- content-main end// -->
 

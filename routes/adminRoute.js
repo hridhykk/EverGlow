@@ -59,11 +59,24 @@ admin_route.get('/userblock',isLogin,adminController.userblock)
 admin_route.get('/logouts',adminController.logouts)
 admin_route.get('/adminorderlist',isLogin,adminController.adminorderlist);
 admin_route.get('/adminorderdetails',isLogin,adminController.adminorderdetails);
+admin_route.post('/updateOrderStatus',isLogin,adminController.updateOrderStatus);
 admin_route.post('/acceptcancel',isLogin,adminController.acceptcancel);
 admin_route.get('/addcoupen',isLogin,adminController.addcoupen);
 admin_route.post('/addcoupen',isLogin,adminController.coupenload);
 admin_route.get('/couponpage',isLogin,adminController.couponpage);
 admin_route.get('/orderlist',isLogin,adminController.orderlist);
+admin_route.get('/pdfreport',isLogin,adminController.pdfreport);
+admin_route.get('/excel',isLogin,adminController.excel);
+admin_route.get('/productofferpage',isLogin,productController.productofferpage);
+admin_route.post('/productoffer',isLogin,productController.productoffer);
+admin_route.post('/removeoffer',isLogin,productController.removeoffer);
+admin_route.get('/categoryofferpage',isLogin,categoryController.categoryofferpage);
+admin_route.post('/categoryofferpage',isLogin,categoryController.categoryoffer);
+   
+admin_route.post('/removecategoryoffer',isLogin,categoryController.removecategoryoffer);
 
+admin_route.get('/inactivecoupon',isLogin,adminController.inactivecoupon);
+admin_route.get('/editcoupon',isLogin,adminController.loadeditcoupon);
 
+admin_route.post('/editcoupon',isLogin,adminController.editCouponPage);
 module.exports= admin_route;

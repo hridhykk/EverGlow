@@ -10,6 +10,11 @@ const Order = require('../models/orderModel');
 const Wishlist = require('../models/wishlistModel');
 const mongoose = require('mongoose');
 const Category = require('../models/categoryModel');
+const Wallet = require('../models/walletModel');
+var easyinvoice = require('easyinvoice');
+const fs = require('fs');
+const Razorpay = require('razorpay')
+const crypto = require('crypto');
 
 
 const securePassword = async(password)=>{
@@ -278,8 +283,11 @@ const verifyLogin = async(req,res)=>{
 const loadhome = async(req,res)=>{
   try{
     const isBlocked = false;
-    const product = await Product.find({isBlocked:isBlocked})
-    res.render('home',{product})
+    const product = await Product.find({isBlocked:isBlocked});
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
+   const currentDate = new Date();
+    res.render('home',{product, wishlist,cart,currentDate})
    
 
   }catch(error){
@@ -292,64 +300,114 @@ const loadhome = async(req,res)=>{
 
 const productdetailspage = async(req,res)=>{
   try{
-    const product = await Product.find()
- 
-    res.render('productdetails',{product})
+const id = req.query.id;
+
+const product = await Product.findOne({_id:id})
+    const products = await Product.find()
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+    const cart = await Cart.findOne({owner:req.session.user_id})
+    res.render('productdetails',{products,product,wishlist,cart})
   }
   catch(error){
     console.log(error.message)
   }
 }
 
-const shopload = async(req,res)=>{
-  try{
+const shopload = async (req, res) => {
+  try {
     let sortOptions = req.query.sortOptions;
     let sortQuery = {};
 
     switch (sortOptions) {
-        case 'popularity':
-            sortQuery = { popularity: -1 };
-            break;
-        case 'priceLowToHigh':
-            sortQuery = { price: 1 };
-            break;
-        case 'priceHighToLow':
-            sortQuery = { price: -1 };
-            break;
-        case 'averageRating':
-            sortQuery = { averageRating: -1 };
-            break;
-        case 'newness':
-          sortQuery = { _id: -1 };
-          break;
-        case 'productNameAZ':
-            sortQuery = { productname: 1 };
-            break;
-        case 'productNameZA':
-            sortQuery = { productname: -1 };
-            break;
-        default:
-          sortQuery = { _id: -1 }; 
-
+      case 'popularity':
+        sortQuery = { popularity: -1 };
+        break;
+      case 'priceLowToHigh':
+        sortQuery = { price: 1 };
+        break;
+      case 'priceHighToLow':
+        sortQuery = { price: -1 };
+        break;
+      case 'averageRating':
+        sortQuery = { averageRating: -1 };
+        break;
+      case 'newness':
+        sortQuery = { _id: -1 };
+        break;
+      case 'productNameAZ':
+        sortQuery = { productname: 1 };
+        break;
+      case 'productNameZA':
+        sortQuery = { productname: -1 };
+        break;
+      default:
+        sortQuery = { _id: -1 };
     }
-   const category =  await Category.find();
-    const product = await Product.find().sort(sortQuery);
- 
-   res.render('shop',{product,category})
+
+    let categoryFilter = {};
+    const categoryName = req.query.categoryOptions;
+    if (categoryName) {
+      const category = await Category.findOne({ name: categoryName });
+      if (category) {
+        categoryFilter = { category: category._id };
+      }
+    }
+
+    const category = await Category.find();
+    let product = await Product.find(categoryFilter).sort(sortQuery);
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
+
+    res.render('shop', { product, category,wishlist,cart });
+  } catch (error) {
+    console.log(error.message);
+    res.status(500).send('Internal server error');
   }
-  catch(error){
-    console.log(error.message)
-  }
-}
+};
+
+// const useraccountload = async (req, res) => {
+//   try {
+//     const id = req.session.user_id;
+//     const currentPage = parseInt(req.query.page) || 1;
+//     const limit = 10; // Number of orders per page
+//     const startIndex = (currentPage - 1) * limit;
+
+//     // Fetch orders with pagination
+//     const order = await Order.find({ user: id })
+//       .skip(startIndex)
+//       .limit(limit)
+//       .sort({ createdAt: -1 }); // Sort by descending order of creation date
+
+//     // Fetch other user-related data
+//     const address = await Address.find({ user: id });
+//     const user = await User.findOne({ _id: id });
+//     const wallet = await Wallet.findOne({ user: req.session.user_id });
+//     const wishlist = await Wishlist.findOne({ user: req.session.user_id });
+//     const cart = await Cart.findOne({ owner: req.session.user_id });
+
+//     // Count total number of orders for pagination
+//     const totalOrders = await Order.countDocuments({ user: id });
+//     const totalPages = Math.ceil(totalOrders / limit);
+   
+//     res.render('useraccount', { user, address, order, wallet, cart, wishlist, currentPage, totalPages, startIndex });
+//   } catch (error) {
+//     console.log(error.message);
+//     res.status(500).send('Server Error');
+//   }
+// }
+
 
 const useraccountload = async (req,res)=>{
   try{
     const id= req.session.user_id
-   const order = await Order.find({user:id})
+    const order = await Order.find({ user: id }).sort({ createdAt: -1 });
+
     const address = await Address.find({user:id});
     const user = await User.findOne({_id:id})
-   
-  res.render('useraccount',{user,address,order})
+   const wallet = await Wallet.findOne({user:req.session.user_id});
+   const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
+  res.render('useraccount',{user,address,order,wallet,cart,wishlist})
   }
   catch(error){
     console.log(error.message)
@@ -360,9 +418,10 @@ const edituseraccountload = async(req,res)=>{
   try{
     console.log(req.session.user_id)
     const id = req.session.user_id
-    
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
     const user = await User.findOne({_id:id})
-  res.render('edituseraccount',{user})
+  res.render('edituseraccount',{user,wishlist,cart})
   }
   catch(error){
     console.log(error.message)
@@ -390,8 +449,10 @@ const edituseraccount = async(req,res)=>{
 const addaddress = async (req,res)=>{
   try{
     const id= req.session.user_id
-    const user = await User.findOne({_id:id})
-  res.render('addaddress',{user})
+    const user = await User.findOne({_id:id});
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
+  res.render('addaddress',{user,wishlist,cart})
   }
   catch(error){
     console.log(error.message)
@@ -404,8 +465,9 @@ const addressload = async (req,res)=>{
   try{
     const id = req.session.user_id
     const address = await Address.find({user:id});
-    console.log(address)
-  res.render('address',{address})
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+    const cart = await Cart.findOne({owner:req.session.user_id})
+  res.render('address',{address,wishlist,cart})
   }
   catch(error){
     console.log(error.message)
@@ -451,7 +513,9 @@ const editaddress =async(req,res)=>{
     const id = req.query.id;
     console.log(id)
     const address = await Address.findOne({_id:id});
-    res.render('editaddress',{address})
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
+    res.render('editaddress',{address,wishlist,cart})
   }
   catch(error){
     console.log(error.message)
@@ -463,7 +527,9 @@ const editaddress =async(req,res)=>{
     const id = req.query.id;
     console.log(id)
     const address = await Address.findOne({_id:id});
-    res.render('editaddresscheckout',{address})
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
+    res.render('editaddresscheckout',{address,wishlist,cart})
   }
   catch(error){
     console.log(error.message)
@@ -545,8 +611,10 @@ const removeaddress = async (req,res)=>{
 const useraccountorder = async(req,res)=>{
 try{
   const id = req.session.user_id;
-  const order = await Order.findOne({user:id})
- res.render('order',{order})
+  const order = await Order.findOne({user:id});
+  const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
+ res.render('order',{order,wishlist,cart})
 }
 catch(error){
   console.log(error.message)
@@ -557,7 +625,9 @@ catch(error){
 const orderdetails = async (req,res)=>{
   try{
     const orderId = req.query.id;
-    const order = await Order.findOne({_id:orderId})
+    const order = await Order.findOne({_id:orderId});
+    const wishlist = await Wishlist .findOne({user:req.session.user_id});
+   const cart = await Cart.findOne({owner:req.session.user_id})
     res.render('orderdetails',{order})
   }
 catch(error){
@@ -574,28 +644,118 @@ const orderview = async(req,res)=>{
     console.log(error.message)
   }}
 
-  const cancelorder = async(req,res)=>{
+
+  function generateoId(){
+    const oId = randomstring.generate({
+       length:4,
+       charset:'numeric'
+   
+     });
+     return oId;
+   
+   }
+  
+   var instance = new Razorpay({ key_id: 'rzp_test_S0n0KoYcfH03Z8', key_secret: '4zspRlSBEVt30znhYdnWTJ5L' })
+
+
+  const orderpending = async(req,res)=>{
     try{
-     console.log('kdbksfbfk')
-      const { id, reason } = req.body;
-      const order = await Order.findById({_id:id});
   
-      if (!order) {
-        return res.status(404).json({ error: 'Order not found' });
-      }
+  const id = req.query.id;
+
+  const orderss = await Order.findOne({_id:id});
+
   
-    
-      
-      order.reason = reason;
-      await order.save();
-      order.requests.push({ type: 'Cancel', status: 'Pending', reason });
-      await order.save();
+  const order = await instance.orders.create({
+    amount:orderss.billTotal*100,
+    currency: "INR",
+    receipt:orderss._id
+  });
   
-      res.status(200).json({ success:true,message: 'cancel request is send' });
+  
+  res.json({status: "success", order: order});
+  
     }catch(error){
       console.log(error.message)
     }
   }
+  
+
+  const updatepayment = async (req, res) => {
+    try {
+        console.log('helloss');
+        const razorpaySecret = "4zspRlSBEVt30znhYdnWTJ5L";
+        const body = req.body.paymentData.razorpay_order_id + "|" + req.body.paymentData.razorpay_payment_id;
+        const expectedSignature = crypto
+            .createHmac("sha256", razorpaySecret)
+            .update(body)
+            .digest("hex");
+
+        if (expectedSignature === req.body.paymentData.razorpay_signature) {
+            console.log("Corrected Verify");
+            const orderId = req.body.paymentData.orderId;
+            const order = await Order.findByIdAndUpdate({ _id: orderId }, {
+                $set: {
+                    paymentStatus: 'Success',
+                    status: 'Success',
+                    oId: req.body.paymentData.razorpay_order_id ,
+                }
+            });
+            await order.save();
+            res.json({success:true,message:"order added successfuly"});
+        } else {
+            console.log("Incorrect Signature");
+        }
+
+    } catch (error) {
+        console.log(error.message);
+    }
+}
+
+
+  const cancelorder = async (req, res) => {
+    try {
+      
+      const { id, reason } = req.body;
+      const order = await Order.findById({_id:id});
+      if(order.paymentStatus == 'Success'){
+        const updatedOrder = await Order.findByIdAndUpdate(id,
+          { status: 'Canceled', reason: reason },
+          { new: true }
+        );
+      
+        let wallet = await Wallet.findOne({ user: req.session.user_id });
+        if (!wallet) {
+          wallet = await Wallet.create({ user: req.session.user_id });
+        }
+  
+   
+        wallet.balance += order.billTotal;
+  
+      
+        wallet.transactions.push({
+          amount: order.billTotal,
+          type: 'credit', 
+        });
+  
+        await wallet.save();
+
+        res.status(200).json({ success: true, message: 'Order canceled successfully', order: updatedOrder });
+      }else{
+      const updatedOrder = await Order.findByIdAndUpdate(id,
+        { status: 'Canceled', reason: reason },
+        { new: true }
+      );
+      res.status(200).json({ success: true, message: 'Order canceled successfully', order: updatedOrder });
+    }
+  
+     
+    } catch (error) {
+      console.log(error.message);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  };
+  
 
 
   const wishlistload = async(req, res) => {
@@ -642,7 +802,8 @@ const wishlist = async(req,res)=>{
 const wishlist = await Wishlist.findOne({user:id}).populate({path:"product",model:"Product"});
 
 
-res.render('wishlist',{wishlist})
+   const cart = await Cart.findOne({owner:req.session.user_id})
+res.render('wishlist',{wishlist,cart})
   }
   catch(error){
     console.log(error)
@@ -682,8 +843,70 @@ const deletewishlistitem = async(req,res)=>{
 
 
 
+const invoicedownload = async (req, res) => {
+  try {
+    const orderId = req.query.id;
+    const order = await Order.findOne({ _id: orderId }).populate({ path: 'user', model: "User" });
+  console.log(order)
+    const data = {
+      "documentTitle": "INVOICE", 
+      "currency": "INR",
+      "taxNotation": "gst", 
+      "marginTop": 25,
+      "marginRight": 25,
+      "marginLeft": 25,
+      "marginBottom": 25,
+      "logo": "https://public.easyinvoice.cloud/img/logo_en_original.png", 
+      "background": "https://public.budgetinvoice.com/img/watermark_draft.jpg", 
+      "sender": {
+          "company": "N",
+          "address": "Cherthala, Alappuzha, Kerala",
+          "zip": "987654",
+          "city": "Cherthala",
+          "country": "India" 
+      },
+      "client": {
+          "company": order.user.name, 
+          "address": order.deliveryAddress.Street, 
+          "zip": order.deliveryAddress.pincode,
+          "city": order.deliveryAddress.city,
+          "country": order.deliveryAddress.Country 
+      },
+    
+      "products": order.items.map(item => ({
+        "description": item.productname,
+        "quantity": item.quantity,
+        "price": item.price,
+       
+    })),
+    "information": {
+    
+    
+      "date": order.updatedAt.toLocaleDateString('en-US', { timeZone: 'UTC' })
+  },
+  
+       
+     
+  };
+
+  const result = await easyinvoice.createInvoice(data); 
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename=myInvoice.pdf');
+  res.send(Buffer.from(result.pdf, 'base64')); 
 
 
+  } catch (error) {
+    console.error("Error generating invoice:", error);
+    res.status(500).json({ error: "Failed to generate invoice" });
+  }
+};
+
+
+
+
+
+// console.log('PDF base64 string: ', result.pdf);
 
 module.exports={
   securePassword,
@@ -716,6 +939,9 @@ cancelorder,
 editaddresscheckout,
 wishlistload,
 wishlist,
-deletewishlistitem
+deletewishlistitem,
+invoicedownload,
+orderpending,
+updatepayment
 
 }

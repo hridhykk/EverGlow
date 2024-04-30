@@ -815,9 +815,15 @@
                                     <div class="card-body">
                                         <div class="media flex-column flex-sm-row ">
                                             <div class="media-body ">
-                                                <h5 class="bold"><%= order.items[i].productname %></h5>
+                                                <h5 class="bold"><%= order.items.productname %></h5>
                                                 <p class="text-muted">Qty - <%= order.items[i].quantity %></p>
-                                                <h4 class="mt-3 mb-4 bold"> <span class="mt-5">&#x20B9;</span><%= order.billTotal %>
+                                                <h4 class="mt-3 mb-4 bold"> <span class="mt-5">&#x20B9;</span>  <% if (order.couponapplied === true) { %>
+                                                  
+                                                    <td><%= order.discountPrice %></td> 
+                                                <% } else { %>
+                                                  
+                                                    <td>$<%= order.billTotal %></td> 
+                                                <% } %>
                                                     <span class="small text-muted"> via <%= order.paymentMethod %> </span></h4>
                                                 
                                                 <!-- <p class="text-muted">Tracking Status on: <span

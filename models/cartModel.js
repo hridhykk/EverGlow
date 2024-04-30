@@ -46,7 +46,15 @@ billTotal: {
     type: Number,
     required: true,
    default: 0
-  }
+  },
+  couponapplied:{
+    type:Boolean,
+    default:false
+  },
+  discountPrice:{
+    type: Number,
+    default: 0,
+ }
 }, {
 timestamps: true 
 })

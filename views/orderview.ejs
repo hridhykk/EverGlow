@@ -728,16 +728,12 @@ button:hover {
                 <h6>Order Date:<%= new Date(order.orderDate).toLocaleDateString()  %></h6>
                 <%if(order.paymentStatus==='Pending'){%>
                     <p class="text-danger">Payment : Pending</p>
-                    <form action="" method="post">
-                    <label class="radio-default d-flex">
-                        <input type="radio" name="paymentOption" style="width: 15px;" id="razorpay" value="razorpay" required>
-                            <span>Online Payment</span>
-                            </label>
-                           <input type="hidden" id="id" value="<%=order.oId%>">
-                            <div class="order_button pt-3">
-                                <button class="btn btn-md btn-black-default-hover" id="proceedButton" type="button">continue to payment</button>
-                            </div>
-                            </form>
+                   
+                       
+                    
+                            <button class="btn btn-md btn-black-default-hover"  onclick="proceedToPayment('<%= order._id %>')" >Continue to Payment</button>
+                 
+                   
                             <br>
                 <%}%>
                 <article class="card">
@@ -833,13 +829,22 @@ button:hover {
                 </ul>
                 
                 <hr>
-                <a  href="/pdf?id=<%=order._id%>" download="Invoice.pdf">Download Invoice</a>
-                <a href="/myorder" class="btn btn-warning" data-abc="true"> <i class="fa fa-chevron-left"></i> Back to orders</a>
+                <% if(order.status=== 'Delivered') { %>
+                    <button class="button-box">ORDER Delivered</button>
+                <% } else { %>
+                    <!-- <a href="/pdf?id=<%= order._id %>" download="Invoice.pdf">Download Invoice</a> -->
+                    <!-- <a href="/myorder" class="btn btn-warning" data-abc="true"><i class="fa fa-chevron-left"></i> Back to orders</a> -->
+                    <button class="button-box" onclick="cancelorder('<%= order._id %>')">CANCEL ORDER</button>
+             
+                
+                <% } %>
+                
+                <button><a class="button-box" href="/invoice?id=<%= order._id %>" download="invoice.pdf">Invoice</a></button>
             </div>
             <%}%>
         </article>
     </div>
-
+                    
     <footer class="footer-section footer-bg section-top-gap-100">
         <div class="footer-wrapper">
 
@@ -888,21 +893,7 @@ button:hover {
                             </div>
                           
                         </div>
-                        <div class="col-lg-3 col-sm-6 mb-6">
-                           
-                            <div class="footer-widget-single-item footer-widget-color--golden" data-aos="fade-up"
-                                data-aos-delay="600">
-                                <h5 class="title">ABOUT US</h5>
-                                <div class="footer-about">
-                                    <p class="text-light">We are a team of  enterpreneurs that create high quality products.</p>
-
-                                    <address class="address">
-                                        <span class="text-light">Address: NYRA,NYRA bulding ,mumbai-707865 90785643432.</span>
-                                        <span class="text-light">Email: nyra@gmail.com</span>
-                                    </address>
-                                </div>
-                            </div>
-                        </div>
+                       
                     </div>
                 </div>
             </div>
@@ -927,26 +918,7 @@ button:hover {
                 </div>
             </div>
           
-            <div class="footer-bottom">
-                <div class="container">
-                    <div
-                        class="row justify-content-between align-items-center align-items-center flex-column flex-md-row mb-n6">
-                        <div class="col-auto mb-6">
-                            <div class="footer-copyright">
-                                <p class="copyright-text text-light">&copy; 2024 <a href="index.html">NYRA</a>.
-
-                            </div>
-                        </div>
-                        <div class="col-auto mb-6">
-                            <div class="footer-payment">
-                                <div class="image">
-                                    <img src="assets/images/company-logo/payment.png" alt="">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+          
         
         </div>
 
@@ -1328,9 +1300,170 @@ button:hover {
     <!-- Use the minified version files listed below for better performance and remove the files listed above -->
     <script src="assets/js/vendor/vendor.min.js"></script>
     <script src="assets/js/plugins/plugins.min.js"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    
     <!-- Main JS -->
     <script src="assets/js/main.js"></script>
+    <script>
+        function cancelorder(id) {
+            Swal.fire({
+                title: 'Reason for Cancellation',
+                input: 'text',
+                inputPlaceholder: 'Enter reason for cancellation',
+                showCancelButton: true,
+                confirmButtonText: 'Submit',
+                cancelButtonText: 'Cancel',
+                showLoaderOnConfirm: true,
+                preConfirm: (reason) => {
+                    return $.ajax({
+                        url: `/cancelorder?id=${id}`, // Corrected URL interpolation
+                        type: 'POST',
+                        data: JSON.stringify({ id: id, reason: reason }), // Ensure data is stringified
+                        contentType: 'application/json',
+                    })
+                    .then(response => {
+                        if (response.error) { // Checking for error in response
+                            alert(response.error);
+                        } else {
+                            Swal.fire('your order has been canceled', '', 'success');
+                           setTimeout(function(){
+                            window.location.reload();
+                           },2000) 
+                        }
+                    })
+                    .catch(error => {
+                        Swal.showValidationMessage(`Request failed: ${error.statusText}`);
+                    });
+                },
+                allowOutsideClick: () => !Swal.isLoading()
+            });
+        }
+        
+
+
+        function invoice(id) {
+    $.ajax({
+        url: `/invoice?id=${id}`,
+        type: 'GET',
+        contentType: 'application/json',
+    })
+    .then(response => {
+        if (response.error) {
+            // Handle specific error cases if necessary
+            alert(response.error);
+        } else {
+            Swal.fire('Invoice downloaded successfully!', '', 'success');
+            // You might want to handle the downloaded file in the frontend
+        }
+    })
+    .catch(error => {
+        // Use the error object to get more information about the failure
+        console.error('Request failed:', error);
+        Swal.showValidationMessage(`Request failed: ${error.statusText}`);
+    });
+}
+
+
+
+
+      </script>  
+   <script>
+    function proceedToPayment(orderId) {
+     
+    
+console.log(orderId)
+        fetch(`/orderpending?id=${orderId}`, {
+            method: "POST",
+          
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === "success") {
+             
+                console.log(data.order);
+                const order_Id = data.order.id;
+
+                var options = {
+                    key: 'rzp_test_S0n0KoYcfH03Z8',
+                    amount: 3000,
+                    currency: 'INR',
+                    name: 'Acme Corp',
+                    description: 'Test Transaction',
+                    order_id: order_Id,
+                    handler: function (response) {
+                        console.log('Payment successful:', response);
+                        successPayment(response,orderId);
+                    },
+                    prefill: {
+                        name: 'Gaurav Kumar',
+                        email: 'gaurav.kumar@example.com',
+                        contact: '9000090000',
+                    },
+                    theme: {
+                        color: '#3399cc',
+                    },
+                };
+
+                var rzp1 = new Razorpay(options);
+                rzp1.open();
+                rzp1.on('payment.failed', function (response) {
+                    paymentfailed(response, orderId);
+                });
+            } else {
+                window.location.href = '/paymentfailed';
+                console.error('Failed to create order:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function successPayment(response,orderId){
+
+
+  
+  const paymentData = {
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_signature: response.razorpay_signature,
+            orderId:orderId
+           
+          };
+
+          console.log(paymentData,'paymentdata')
+          fetch('/updatepayment', {
+            method: 'POST',
+            body: JSON.stringify({ paymentData: paymentData }),
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          })
+            .then((response) => response.json())
+            .then((data) => {
+            
+              if(data.success){
+              console.log(data);
+             
+           location.reload();
+
+              }else{
+                alert('Payment failed');
+              
+              }
+            })
+            .catch((error) => {
+             
+              console.error(error);
+            });
+
+}
+
+
+
+</script>
+
 </body>
 
 

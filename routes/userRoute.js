@@ -56,7 +56,12 @@ user_route.get('/edituseraccount',logSession,userController.edituseraccountload)
 user_route.post('/edituseraccount',logSession,userController.edituseraccount);
 user_route.get('/orderdetails',logSession,userController.orderdetails);
 user_route.get('/orderview',logSession,userController.orderview);
+user_route.post('/orderpending',logSession,userController.orderpending);
+user_route.post('/updatepayment',logSession,userController.updatepayment);
+
 user_route.post('/cancelorder',logSession,userController.cancelorder);
+
+// user_route.post('/insertcart',logSession,userController.inserder);
 // user_route.post('/insertcart',logSession,userController.insertcart);
 user_route.post('/cart',logSession,cartController.cartload);
 user_route.get('/cartpage',logSession,cartController.cartpageload);
@@ -65,6 +70,7 @@ user_route.post('/updateQuantity',logSession,cartController.updateQuantity);
 user_route.get('/checkout',logSession,cartController.checkoutpage);
 user_route.post('/order',logSession,cartController.orderload);
 user_route.post('/orderonlineload',logSession,cartController.orderonlineload);
+user_route.post('/orderfailed',logSession,cartController.orderfailed);
 
 user_route.get('/ordersuccess',logSession,cartController.ordersuccess);
 user_route.get('/useraccountorder',logSession,userController.useraccountorder);
@@ -77,6 +83,11 @@ user_route.get('/wishlist',logSession,userController.wishlist);
 user_route.post('/wishlistload',logSession,userController.wishlistload);
 user_route.get('/deletewishlistitem',logSession,userController.deletewishlistitem);
 user_route.post('/checkcoupon',logSession,cartController.checkcoupon);
+user_route.post('/removecoupon',logSession,cartController.removecoupon);
+
+
+
+user_route.get('/invoice',logSession,userController.invoicedownload);
 
 
 

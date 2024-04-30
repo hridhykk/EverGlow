@@ -57,7 +57,30 @@ const productSchema= new mongoose.Schema({
    type:Boolean,
    default:false,
  },
-
+productofferApplied:{
+   type:Boolean,
+   default:false,
+ },
+offerexp:{
+   type:Date,
+   
+ },
+ offerPrice:{
+   type: Number,
+   default: 0,
+},
+categoryofferPrice:{
+   type: Number,
+   default: 0,
+},
+categoryofferexp:{
+   type:Date,
+   
+ },
+ categoryofferApplied:{
+   type:Boolean,
+   default:false,
+ },
  discountPrice:{
     type: Number,
     default: 0,
