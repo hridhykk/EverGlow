@@ -1,0 +1,159 @@
+<%-include('adminheader')%>
+    <main class="main-wrap">
+        <header class="main-header navbar">
+            <div class="col-search">
+               
+            </div>
+            <div class="col-nav">
+                <button class="btn btn-icon btn-mobile me-auto" data-trigger="#offcanvas_aside"> <i class="material-icons md-apps"></i> </button>
+                <ul class="nav">
+                    <li class="nav-item">
+                        <a class="nav-link btn-icon" href="#">
+                            <i class="material-icons md-notifications animation-shake"></i>
+                            <span class="badge rounded-pill">3</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link btn-icon darkmode" href="#"> <i class="material-icons md-nights_stay"></i> </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="requestfullscreen nav-link btn-icon"><i class="material-icons md-cast"></i></a>
+                    </li>
+                  
+                    
+                </ul>
+            </div>
+        </header>
+      
+        <section class="content-main">
+            <div class="card">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" data-bs-toggle="tab" href="#menu1">Best selling product</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#menu2">Best selling Category</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" data-bs-toggle="tab" href="#menu3">Best selling brands</a>
+                    </li>
+                </ul>
+            
+                <div class="tab-content">
+                    <div id="menu1" class="container tab-pane active"><br>
+                        <h3>Best Selling Products</h3>
+                        <div class="row">
+                            <% if(typeof product !== 'undefined' && product.length > 0) { %>
+                                <% for(let i=0; i<product.length; i++) { %>
+                                    <div class="col-xl-3 col-lg-4 col-md-6">
+                                        <div class="card card-product-grid">
+                                            <a href="#" class="img-wrap"> <img src="/userImages/<%= product[i].images[0] %>" alt="Product"> </a>
+                                            <div class="info-wrap">
+                                                <div class="dropdown float-end">
+                                                    <a href="/admin/editproduct?id=<%= product[i]._id %>" class="btn btn-sm btn-brand rounded">
+                                                        <i class="material-icons md-edit mr-5"></i>Edit
+                                                    </a>
+                                                    <div class="dropdown-menu dropdown-menu-end">
+                                                        <a class="dropdown-item" href="/admin/editproduct?id=<%= product[i]._id %>">Edit info</a>
+                                                    </div>
+                                                </div>
+                                                <a href="#" class="title"><%= product[i].productname %></a>
+                                                <div class="price mt-1">RS.<%= product[i].price %>.00</div> <!-- price-wrap.// -->
+                                            </div>
+                                        </div> <!-- card-product end -->
+                                    </div>
+                                <% } %>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div id="menu2" class="container tab-pane fade"><br>
+                        <h3>Best selling Category</h3>
+                        <div class="row">
+                            <% if(typeof popularityByCategory !== 'undefined' && popularityByCategory.length > 0) { %>
+                                <% for(let i=0; i<popularityByCategory.length; i++) { %>
+                                    <div class="col-xl-3 col-lg-4 col-md-6">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Actions</th>
+                                                </tr>
+                                                <tr>
+                                                    <td width="20%"><%= popularityByCategory[i].name %></td>
+                                                    <td width="60%">
+                                                        <a href="/admin/editcategory?id=<%= popularityByCategory[i]._id %>" class="btn btn-success">Edit</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                <% } %>
+                            <% } else { %>
+                                <div class="col">
+                                    <p>Category Not Found</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                    <div id="menu3" class="container tab-pane fade"><br>
+                        <h3>Best selling Brands</h3>
+                        <div class="row">
+                            <% if(typeof bestSellingBrands !== 'undefined' && bestSellingBrands.length > 0) { %>
+                                <% bestSellingBrands.forEach(brand => { %>
+                                    <div class="col-xl-3 col-lg-4 col-md-6">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Name</th>
+                                                        <th>Total Quantity Sold</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td><%= brand._id %></td>
+                                                        <td><%= brand.totalQuantitySold %> nos</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            <% } else { %>
+                                <div class="col">
+                                    <p>No data available</p>
+                                </div>
+                            <% } %>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <footer class="main-footer font-xs">
+            <div class="row pb-30 pt-15">
+                <div class="col-sm-6">
+                    <script>
+                    document.write(new Date().getFullYear())
+                    </script> © <a href="#">EverGlow</a>.
+                </div>
+                <div class="col-sm-6">
+                    <div class="text-sm-end">
+                        All rights reserved
+                    </div>
+                </div>
+            </div>
+         </footer>
+ 
+    <script src="adminassets/js/vendors/jquery-3.6.0.min.js"></script>
+    <script src="adminassets/js/vendors/bootstrap.bundle.min.js"></script>
+    <script src="adminassets/js/vendors/select2.min.js"></script>
+    <script src="adminassets/js/vendors/perfect-scrollbar.js"></script>
+    <script src="adminassets/js/vendors/jquery.fullscreen.min.js"></script>
+    <!-- Main Script -->
+    <script src="adminassets/js/main.js" type="text/javascript"></script>
+   
+    
+</body>
+
+</html>

@@ -52,6 +52,11 @@ const productSchema= new mongoose.Schema({
     default: 0,
 
  },
+ popularity:{
+   type:Number,
+   default:0,
+
+ },
  
  isBlocked:{
    type:Boolean,
@@ -90,8 +95,8 @@ categoryofferexp:{
  {
  strictPopulate:false} ,
  {
- timestamps: true
-});
+    timestamps: true
+  });
 
 
 

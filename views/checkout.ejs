@@ -94,7 +94,7 @@
                                             <% cart.items.forEach(item => { %>
                                                 <tr>
                                                     <td><%= item.name %></td>
-                                                    <td>$<%= item.price %></td>
+                                                    <td>Rs:<%= item.price %></td>
                                                 </tr>
                                             <% }); %>
                                         </tbody>
@@ -102,14 +102,14 @@
                                             <tr> 
                                                 <% if (cart.couponapplied === true) { %>
                                                     <th>Cart Subtotal</th>
-                                                    <td>$<%= cart.discountPrice %></td> 
+                                                    <td><span class="mt-5">&#x20B9;</span> <%= cart.discountPrice %></td> 
                                                     <th>Order Total</th>
-                                                    <td><strong>$<%= cart.discountPrice %></strong></td>
+                                                    <td><strong><span class="mt-5">&#x20B9;</span> <%= cart.discountPrice %></strong></td>
                                                 <% } else { %>
                                                     <th>Cart Subtotal</th>
-                                                    <td>$<%= cart.billTotal %></td> 
+                                                    <td><span class="mt-5">&#x20B9;</span> <%= cart.billTotal %></td> 
                                                     <th>Order Total</th>
-                                                    <td><strong>$<%= cart.billTotal %></strong></td>
+                                                    <td><strong><span class="mt-5">&#x20B9;</span> <%= cart.billTotal %></strong></td>
                                                 <% } %>
                                             </tr>
                                             <tr>
@@ -119,10 +119,10 @@
                                             <tr class="order_total">
                                                 <% if (cart.couponapplied === true) { %>
                                                     <th>Order Total</th>
-                                                    <td><strong>$<%= cart.discountPrice %></strong></td>
+                                                    <td><strong><span class="mt-5">&#x20B9;</span> <%= cart.discountPrice %></strong></td>
                                                 <% } else { %>
                                                     <th>Order Total</th>
-                                                    <td><strong>$<%= cart.billTotal %></strong></td>
+                                                    <td><strong><span class="mt-5">&#x20B9;</span> <%= cart.billTotal %></strong></td>
                                                 <% } %>
                                             </tr>
                                         </tfoot>
@@ -704,7 +704,7 @@ function proceedToPayment() {
                 var rzp1 = new Razorpay(options);
                 rzp1.open();
                 rzp1.on('payment.failed', function (response) {
-                    // console.error('Payment failed:', response.error);
+                    console.error('Payment failed:', response.error);
                     // window.location.href= '/paymentfailed'; 
                     paymentfailed(response,selectedAddress) ;
                 });

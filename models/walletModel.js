@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
-
-const transactionSchema = new mongoose.Schema({
+const Schema = mongoose.Schema;
+const ObjectID = mongoose.Schema.Types.ObjectId;
+const transactionSchema = new Schema({
   amount: {
     type: Number,
     required: true,
@@ -15,12 +16,12 @@ const transactionSchema = new mongoose.Schema({
   timestamps: true,
 });
 
-const walletSchema = new mongoose.Schema({
+const walletSchema = new Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId,
+    type:ObjectID,
     ref: 'User',
     required: true,
-    unique: true,
+   
   },
   balance: {
     type: Number,

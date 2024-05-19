@@ -484,9 +484,15 @@
                             <input class="form-control" name="confirmpassword" id="confirmpassword" placeholder="Confirm password" type="password" required="">
                             <span id="confirmpasswordError" class="text-danger"></span>
                         </div>
+                        <div class="default-form-box" style="margin-bottom: 15px;">
+                            <input type="text" id="referralcode" name="referralcode"
+                                placeholder="Enter Referral Code" >
+                            <div id="Referral" class="text-danger" style="display: none;">Invalid Refferral Code</div>
+                        </div>
                         <div style="text-align: center;">
                             <button class="btn btn-md btn-black-default-hover" id="submit" type="submit">Register</button>
                         </div>
+                      
                         <% if (typeof message !== 'undefined') { %>
                         <p style="color: green; text-align: center;"><%=message %></p>
                         <% } %>

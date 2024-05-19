@@ -49,14 +49,8 @@ console.log(error.message)
 }
 
 
-const adminDashboard = async(req,res)=>{
-  try{
-    res.render('dashboard')
 
-  }catch(error){
-    console.log(error.message)
-  }
-}
+
 
 const userload = async (req, res) => {
   try {
@@ -202,20 +196,46 @@ const updateOrderStatus = async (req, res) => {
 };
 
 
-// const acceptcancel = async (req,res)=>{
-//   try{
-//     console.log('sjbsdkbsfkh')
-// const oderId = req.query.id;
-// await Order.findByIdAndDelete({_id:oderId},
-//   {$set:{
-//     status:"canceled"
+const acceptreturn = async (req,res)=>{
+  try{
+
+    console.log("hridya diya")
+    const orderId = req.query.id;
+      const returnOrder = await Order.findOne({_id:orderId});
     
-//   }})
-//   res.status(200).json({ success:true,message: 'product cancel' });
-//   } catch(error){
-//     console.log(error.message)
-//   }
-// }
+    if (! returnOrder) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+
+    returnOrder.requests =  returnOrder.requests.map(request => {
+      if (request.type === 'Return' && request.status === 'Pending') {
+        return { ...request, status: 'Accepted' }; 
+      }
+      return request;
+    });
+
+    for (const item of canceledOrder.items) {
+      const productId = item.productId;
+      const quantity = item.quantity;
+    const product = await Product.findById(productId);
+
+      if (!product) {
+        console.log('Product not found for productId:', productId);
+        continue; 
+      }   
+      product.countinstock += quantity;
+    
+      await product.save();
+    }
+    canceledOrder.status = "Return";
+    await canceledOrder.save();
+res.status(200).json({ success: true, message: 'Product cancel: Stock updated' });
+  } catch(error){
+    console.log(error.message)
+  }
+}
+
+
 const acceptcancel = async (req, res) => {
   try {
     const orderId = req.query.id;
@@ -246,21 +266,15 @@ const acceptcancel = async (req, res) => {
         console.log('Product not found for productId:', productId);
         continue; 
       }
-      
-      // Increase the count in stock by the quantity of the canceled order item
-      product.countinstock += quantity;
-      
-      // Save the updated product
+       product.countinstock += quantity;
       await product.save();
     }
 
-    // Set the status of the canceled order to "canceled"
     canceledOrder.status = "Canceled";
     
-    // Save the updated order
-    await canceledOrder.save();
+ await canceledOrder.save();
 
-    // Respond with success message
+  
     res.status(200).json({ success: true, message: 'Product cancel: Stock updated' });
   } catch (error) {
     console.error(error.message);
@@ -406,13 +420,13 @@ async function salesReport(date){
         let stock = await Product.find();
         let totalCountInStock = 0;
         stock.forEach((product) => {
-          totalCountInStock += product.countInStock;
+          totalCountInStock += product.countinstock;
         });
       
         let averageSales = orders.length / date; 
         let averageRevenue = totalRevenue / date; 
    
-       
+       console.log(productEntered);
         return {
           users,
           totalOrders: orders.length,
@@ -456,7 +470,7 @@ async function salesReport(date){
           let totalOrderCount = orders.length;
   
           let stock = await Product.find(); 
-          let totalCountInStock = stock.reduce((total, product) => total + product.countInStock, 0);
+          let totalCountInStock = stock.reduce((total, product) => total + product.countinstock, 0);
   
           let daysInRange = (endDate - startDate) / (1000 * 60 * 60 * 24);
           let averageSales = totalOrderCount / daysInRange; 
@@ -606,14 +620,14 @@ const generatePDF = (salesData, title, res) => {
               ['Average Revenue', `${data.averageRevenue ? data.averageRevenue.toFixed(2) : 'N/A'}`],
           ];
 
-          data.totalOrder.forEach(order => {
-              if (order.coupon !== 'nil') {
-                  tableRows.push([`Coupon: ${order.coupon}`, `INR ${order.discountPrice}`]);
-              }
-          });
+          // data.totalOrder.forEach(order => {
+          //     if (order.coupon !== 'nil') {
+          //         tableRows.push([`Coupon: ${order.coupon}`, `INR ${order.discountPrice}`]);
+          //     }
+          // });
 
-          const overallDiscountPrice = data.totalOrder.reduce((total, order) => total + order.discountPrice, 0);
-          tableRows.push(['Overall Discount Price', `INR ${overallDiscountPrice}`]);
+          // const overallDiscountPrice = data.totalOrder.reduce((total, order) => total + order.discountPrice, 0);
+          // tableRows.push(['Overall Discount Price', `INR ${overallDiscountPrice}`]);
 
           tableRows.forEach((row, rowIndex) => {
               row.forEach((text, index) => {
@@ -667,7 +681,7 @@ const excel = async (req, res, next) => {
       
     });
     
-  
+   
 
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
@@ -679,6 +693,41 @@ const excel = async (req, res, next) => {
     return res.status(500);
   }
 };
+
+async function orderPieChart() {
+  const statuses = ["Pending", "Processing", "Shipped", "Delivered", "Canceled", "Returned"];
+  const counts = await Promise.all(statuses.map(status => Order.countDocuments({ status })));
+
+  
+
+  const [Pending, Processing, Shipped, Delivered, Canceled, Returned] = counts;
+
+  return { Pending, Processing, Shipped, Delivered, Canceled, Returned };
+}
+
+const adminDashboard = async(req,res)=>{
+  try{
+    let daily = await salesReport(1);
+    let weekly = await salesReport(7);
+    let monthly = await salesReport(30);
+    let yearly = await salesReport(365);
+    let allProductsCount = await Product.countDocuments();
+    let orders=await Order.find().populate({path:'user',model:'User'}).limit(5);
+
+    // console.log(monthly,yearly);
+    
+    let orderChart = await orderPieChart();
+    
+    res.render('dashboard',{daily,weekly,monthly,yearly,allProductsCount,orders,orderChart});
+    
+
+  }catch(error){
+    console.log(error.message)
+  }
+}
+
+
+
 
 
 
@@ -746,4 +795,4 @@ const inactivecoupon  = async(req,res)=>{
 
 
  module.exports={
-  loginLoad,verifyadminLogin ,adminDashboard,userload,userblock,logouts,adminorderlist,adminorderdetails,acceptcancel,addcoupen,coupenload,couponpage,orderlist,updateOrderStatus,pdfreport,excel,inactivecoupon,loadeditcoupon,editCouponPage}
+  loginLoad,verifyadminLogin ,adminDashboard,userload,userblock,logouts,adminorderlist,adminorderdetails,acceptcancel,addcoupen,coupenload,couponpage,orderlist,updateOrderStatus,pdfreport,excel,inactivecoupon,loadeditcoupon,editCouponPage,acceptreturn}

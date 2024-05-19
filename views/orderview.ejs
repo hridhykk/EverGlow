@@ -727,15 +727,22 @@ button:hover {
                 <br>
                 <h6>Order Date:<%= new Date(order.orderDate).toLocaleDateString()  %></h6>
                 <%if(order.paymentStatus==='Pending'){%>
-                    <p class="text-danger">Payment : Pending</p>
-                   
-                       
-                    
-                            <button class="btn btn-md btn-black-default-hover"  onclick="proceedToPayment('<%= order._id %>')" >Continue to Payment</button>
+                    <p class="text-danger">Payment : pending</p>
+                    <button class="btn btn-md btn-black-default-hover"  onclick="proceedToPayment('<%= order._id %>')" >Continue to Payment</button>
                  
                    
                             <br>
-                <%}%>
+                <%}else {%>
+                    <p class="text-danger">Payment : failed</p>
+                   
+                       
+                    
+                    <button class="btn btn-md btn-black-default-hover"  onclick="proceedToPayment('<%= order._id %>')" >Continue to Payment</button>
+         
+           
+                    <br>
+
+               <%}%>
                 <article class="card">
                     <div class="card-body row">
                         <div class="col"> <strong>Estimated Delivery time:</strong> <br><% 
@@ -829,8 +836,10 @@ button:hover {
                 </ul>
                 
                 <hr>
-                <% if(order.status=== 'Delivered') { %>
+                <% if(order.status=== 'Delivered'||order.paymentMethod=="online") { %>
                     <button class="button-box">ORDER Delivered</button>
+                    <button><a class="button-box" href="/invoice?id=<%= order._id %>" download="invoice.pdf">Invoice</a></button>
+                    <!-- <button class="button-box" onclick="returnOrder('<%= order._id %>')">RETURN ORDER</button> -->
                 <% } else { %>
                     <!-- <a href="/pdf?id=<%= order._id %>" download="Invoice.pdf">Download Invoice</a> -->
                     <!-- <a href="/myorder" class="btn btn-warning" data-abc="true"><i class="fa fa-chevron-left"></i> Back to orders</a> -->
@@ -839,7 +848,7 @@ button:hover {
                 
                 <% } %>
                 
-                <button><a class="button-box" href="/invoice?id=<%= order._id %>" download="invoice.pdf">Invoice</a></button>
+              
             </div>
             <%}%>
         </article>
@@ -1327,9 +1336,9 @@ button:hover {
                             alert(response.error);
                         } else {
                             Swal.fire('your order has been canceled', '', 'success');
-                           setTimeout(function(){
-                            window.location.reload();
-                           },2000) 
+                        //    setTimeout(function(){
+                        //     window.location.reload();
+                        //    },2000) 
                         }
                     })
                     .catch(error => {
@@ -1340,8 +1349,7 @@ button:hover {
             });
         }
         
-
-
+    
         function invoice(id) {
     $.ajax({
         url: `/invoice?id=${id}`,
@@ -1368,6 +1376,51 @@ button:hover {
 
 
       </script>  
+    <script>
+       function returnOrder(id) {
+    Swal.fire({
+        title: 'Reason for Return',
+        input: 'text',
+        inputPlaceholder: 'Enter reason for return',
+        showCancelButton: true,
+        confirmButtonText: 'Submit',
+        cancelButtonText: 'Cancel',
+        showLoaderOnConfirm: true,
+        preConfirm: (reason) => {
+            return fetch(`/returnorder?id=${id}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ id: id, reason: reason })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.error) {
+                    Swal.fire('Error', data.error, 'error');
+                } else {
+                    Swal.fire('Your order has been returned', '', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            })
+            .catch(error => {
+                Swal.showValidationMessage(`Request failed: ${error}`);
+            });
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    });
+}
+
+         
+    </script>
+    
    <script>
     function proceedToPayment(orderId) {
      

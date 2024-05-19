@@ -29,13 +29,42 @@ const storage=multer.diskStorage({
   }
 })
 const upload = multer({storage:storage});
-
-
-
 const {logSession,isLogout} =  require('../middleware/auth');
  const {isblocked} =  require('../middleware/isblocked');
 
+require('../passport');
+const passport = require('passport');
+user_route.use(passport.initialize());
+user_route.use(passport.session());
 
+
+function isLoggedin(req, res, next) {
+    req.user ? next() : res.sendStatus(401);
+}
+
+
+// user_route.use(cookieParser());
+
+user_route.get('/auth/google',
+    passport.authenticate('google', { scope: ['email', 'profile'] })
+);
+
+user_route.get('/auth/google/callback',
+    passport.authenticate('google', {
+        successRedirect: '/google-sign-in',
+        failureRedirect: '/auth/google/failure'
+    })
+);
+
+user_route.get('/auth/google/failure', isLoggedin, (req, res) => {
+    console.log(session.user);
+    res.redirect('/login');
+})
+
+
+
+
+user_route.get('/google-sign-in',userController.googleSignIn);
 user_route.get('/register',isLogout,userController.loadRegister);
 user_route.post('/register',userController.initialinsertUser);
 
@@ -84,6 +113,7 @@ user_route.post('/wishlistload',logSession,userController.wishlistload);
 user_route.get('/deletewishlistitem',logSession,userController.deletewishlistitem);
 user_route.post('/checkcoupon',logSession,cartController.checkcoupon);
 user_route.post('/removecoupon',logSession,cartController.removecoupon);
+user_route.post('/returnorder',logSession,userController. returnorder);
 
 
 

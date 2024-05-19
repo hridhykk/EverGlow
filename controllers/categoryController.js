@@ -164,7 +164,7 @@ const categoryload = async(req,res)=>{
               await product.save();
           }
 
-          res.redirect('/admin/categoryofferpage');
+          res.redirect('/admin/categoryo[path.length - 1]offerpage');
       } else {
           res.status(404).send("Products not found for the given category");
       }

@@ -45,7 +45,8 @@ admin_route.get('/addproduct',isLogin,productController.productadd);
 admin_route.post('/addproduct',upload.array('images',3),productController.insertproduct);
 admin_route.get('/editproduct',isLogin,productController.loadeditproduct);
 admin_route.post('/editproduct',upload.array('images',3),productController.editproductpage);
-admin_route.get('/deleteproduct',isLogin,productController.deleteproduct);
+// admin_route.post('/editproduct',productController.editproductpage);
+// admin_route.get('/deletimg',isLogin,productController.deletimg);
 
 
 admin_route.get('/category',isLogin,categoryController.categoryload);
@@ -61,8 +62,9 @@ admin_route.get('/adminorderlist',isLogin,adminController.adminorderlist);
 admin_route.get('/adminorderdetails',isLogin,adminController.adminorderdetails);
 admin_route.post('/updateOrderStatus',isLogin,adminController.updateOrderStatus);
 admin_route.post('/acceptcancel',isLogin,adminController.acceptcancel);
+admin_route.post('/acceptcancel',isLogin,adminController.acceptcancel);
 admin_route.get('/addcoupen',isLogin,adminController.addcoupen);
-admin_route.post('/addcoupen',isLogin,adminController.coupenload);
+admin_route.post('/acceptreturn',isLogin,adminController.acceptreturn);
 admin_route.get('/couponpage',isLogin,adminController.couponpage);
 admin_route.get('/orderlist',isLogin,adminController.orderlist);
 admin_route.get('/pdfreport',isLogin,adminController.pdfreport);
@@ -77,6 +79,6 @@ admin_route.post('/removecategoryoffer',isLogin,categoryController.removecategor
 
 admin_route.get('/inactivecoupon',isLogin,adminController.inactivecoupon);
 admin_route.get('/editcoupon',isLogin,adminController.loadeditcoupon);
-
+admin_route.get('/bestsellingpro',isLogin,productController.bestsellingpro);
 admin_route.post('/editcoupon',isLogin,adminController.editCouponPage);
 module.exports= admin_route;

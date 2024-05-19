@@ -42,6 +42,7 @@ const cartload = async (req, res) => {
         return res.status(200).json({ success: false, message: 'Cannot add more than 5 products in cart' });
       } else {
         cart.items[existingItemIndex].quantity++;
+        cart.quantity++;
         cart.items[existingItemIndex].price += product.price;
         cart.billTotal += product.price;
       }
@@ -57,6 +58,7 @@ const cartload = async (req, res) => {
         couponapplied:false,
         discountPrice:0,
       });
+      quantity: 1,
       cart.billTotal += product.price;
     }
 
@@ -138,7 +140,7 @@ const deletecartitem = async (req, res) => {
     const id = req.query.id;
     console.log(id)
 
-    const cart = await Cart.findOne({ owner: req.session.user_id });
+    const cart = await Cart.findOne({ owner: req.session.user_id }).populate({path:'items.productId',model:'Product'});
 
     if (cart) {
       const itemIndex = cart.items.findIndex(item => item.productId._id.toString() === id);
@@ -150,10 +152,10 @@ const deletecartitem = async (req, res) => {
         if (cart.couponapplied) {
           cart.discountPrice = 0;
           cart.couponapplied = false;
-          cart.billTotal -= (deletedItem.productPrice + cart.discountPrice) * deletedItem.quantity;
+          cart.billTotal -= (deletedItem.productId.price + cart.discountPrice) * deletedItem.quantity;
          
       } else {
-          cart.billTotal -= deletedItem.productPrice * deletedItem.quantity;
+          cart.billTotal -= deletedItem.productId.price * deletedItem.quantity;
       }
       
 
@@ -203,7 +205,7 @@ function generateoId(){
  
  }
 
- var instance = new Razorpay({ key_id: 'rzp_test_S0n0KoYcfH03Z8', key_secret: '4zspRlSBEVt30znhYdnWTJ5L' })
+ var instance = new Razorpay({ key_id:process.env.RAZORPAY_KEYID, key_secret:process.env.RAZORPAY_SECRET})
 
 
  const orderload = async (req, res) => {
@@ -233,9 +235,24 @@ function generateoId(){
   
  
 
-   const cart = await Cart.findOne({ owner: req.session.user_id });
-    const oId = generateoId();
-    const { items, billTotal,discountPrice ,couponapplied} = cart;
+   let cart = await Cart.findOne({ owner: req.session.user_id }).populate({path:'items.productId',model:'Product'});
+  cart.items.forEach(item=>{
+   console.log(item.productId.productname)});
+  
+
+   const items = cart.items.map(item => ({
+    productId: item.productId._id,
+     image: item.productId.images[0],
+    name: item.productId.productname,
+    productPrice: item.productId.price,
+    quantity: item.quantity,
+    price:item.price
+  }))
+  console.log("hridjysaaaa",items)
+
+ 
+   const oId = generateoId();
+  const {  billTotal,discountPrice ,couponapplied} = cart;
       const user = req.session.user_id;
       const { paymentMethod, deliveryAddress } = req.body;
       const parsedDeliveryAddress = JSON.parse(deliveryAddress);
@@ -257,6 +274,7 @@ function generateoId(){
         const quantity = item.quantity;
         const product = await Product.findById(productId);
         product.countinstock -= quantity;
+        product.popularity += 1
 
         await product.save();
     }
@@ -296,9 +314,17 @@ function generateoId(){
       console.log("Corrected Verify");
       const deliveryAddress = req.body.paymentData.selectedAddress;
       const parsedDeliveryAddress = JSON.parse(deliveryAddress);
-       const cart = await Cart.findOne({owner:req.session.user_id})
+       const cart = await Cart.findOne({owner:req.session.user_id}).populate({path:'items.productId',model:'Product'})
        const user = req.session.user_id
-       const { items, billTotal,discountPrice,couponapplied } = cart;
+       const items = cart.items.map(item => ({
+        productId: item.productId._id,
+         image: item.productId.images[0],
+        name: item.productId.productname,
+        productPrice: item.productId.price,
+        quantity: item.quantity,
+        price:item.price
+      }))
+       const { billTotal,discountPrice,couponapplied } = cart;
       const newOrder = new Order({
           user,
           cart: cart._id, 
@@ -308,8 +334,8 @@ function generateoId(){
           discountPrice,
           couponapplied,
           paymentMethod:"online",
-          paymentStatus:"Success",
-          status:'Success',
+         
+          paymentStatus:'Success',
           deliveryAddress: parsedDeliveryAddress 
       });
       
@@ -318,6 +344,7 @@ function generateoId(){
         const quantity = item.quantity;
         const product = await Product.findById(productId);
         product.countinstock -= quantity;
+        product.popularity += 1;
 
         await product.save();
     }
@@ -351,10 +378,17 @@ function generateoId(){
   try{
     const deliveryAddress = req.body.paymentData.selectedAddress;
     const parsedDeliveryAddress = JSON.parse(deliveryAddress);
-     const cart = await Cart.findOne({owner:req.session.user_id})
+     const cart = await Cart.findOne({owner:req.session.user_id}).populate({path:'items.productId',model:'Product'})
      const user = req.session.user_id
-     const { items, billTotal,discountPrice,couponapplied } = cart;
-   
+     const { billTotal,discountPrice,couponapplied } = cart;
+     const items = cart.items.map(item => ({
+      productId: item.productId._id,
+       image: item.productId.images[0],
+      name: item.productId.productname,
+      productPrice: item.productId.price,
+      quantity: item.quantity,
+      price:item.price 
+    }))
     const oId = generateoId();
   
    
@@ -366,8 +400,8 @@ function generateoId(){
           billTotal,
           discountPrice,
           couponapplied,
-          paymentMethod:"online",
-          paymentStatus:"Pending",
+          
+          paymentStatus:"Failed",
           deliveryAddress: parsedDeliveryAddress 
       });
       
@@ -376,7 +410,7 @@ function generateoId(){
         const quantity = item.quantity;
         const product = await Product.findById(productId);
         product.countinstock -= quantity;
-
+        product.popularity += 1 ;
         await product.save();
     }
     cart.items = []; 

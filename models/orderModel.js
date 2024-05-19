@@ -8,10 +8,7 @@ const orderSchema = new Schema({
         ref: 'users',
         required: true,
       },
-      cart: {
-        type: ObjectID,
-        ref: 'carts',
-      },
+    
       oId: {
         type: String,
         required: true,
@@ -42,9 +39,9 @@ const orderSchema = new Schema({
           default: 1,
         },
         price: {
-          type: Number,
-          required: true,
-        },
+          type:Number
+        }
+      
       }, ],
       billTotal: {
         type: Number,
@@ -110,8 +107,8 @@ const orderSchema = new Schema({
 
 
     },
-  {
-    timestamps: true
-  });
+    {
+      timestamps: true,
+    });
   
   module.exports=mongoose.model('Order', orderSchema);

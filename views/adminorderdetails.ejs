@@ -343,7 +343,7 @@
     <script>
         function acceptCancel(id) {
             $.ajax({
-                url: `acceptcancel/?id=${id}`,
+                url: `acceptreturn/?id=${id}`,
                 type: 'POST',
                 success: function(data) {
                   alert(data.message);

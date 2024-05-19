@@ -65,7 +65,7 @@
                                                         alt=""></a></td>
                                                         <%}%>
                                             <td class="product_name"><a href="/productdetails?id=<%=cart.items[i].productId._id %>"><%=cart.items[i].productId.productname%></a></td>
-                                            <td class="product-price">Rs.<%=cart.items[i].productId.price%>.00</td>
+                                            <td class="product-price">Rs.<%=cart.items[i].productId.price %>.00</td>
                                                 <td>
                                             <div class="detail-qty  radius  m-auto">
                                             <button class="qty-down " id="qty-down<%=cart.items[i].productId._id %>" onclick="updateQuantity( '<%=cart.items[i].productId._id %>','<%= cart.items[i].productId.countinstock %>','<%=cart.items[i].quantity %>','sub')"><i class="fa-solid fa-angle-down"></i>

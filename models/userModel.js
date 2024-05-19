@@ -20,7 +20,10 @@ const userSchema= new mongoose.Schema({
     required:true
   },
 
-  
+  referralcode:{
+    type:String,
+    require:true
+},
   is_admin:{
     type:Number,
     required:true
@@ -34,6 +37,7 @@ const userSchema= new mongoose.Schema({
     type:Boolean,
     default:false,
   }
+
 
 });
 

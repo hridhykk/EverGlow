@@ -16,7 +16,6 @@ const fs = require('fs');
 const Razorpay = require('razorpay')
 const crypto = require('crypto');
 
-
 const securePassword = async(password)=>{
   try{
    
@@ -39,6 +38,16 @@ const securePassword = async(password)=>{
   }
 
  }
+
+ function generateReferralCode() {
+     const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+     let referralCode = '';
+     for (let i = 0; i < 6; i++) {
+         const randomIndex = Math.floor(Math.random() * characters.length);
+         referralCode += characters[randomIndex];
+     }
+     return referralCode;
+ }  
 
  function generateOTP(email){
   const otp = randomstring.generate({
@@ -108,11 +117,12 @@ const initialinsertUser = async (req, res) => {
   try {
     console.log('djbdskjfdshf')
     console.log(req.body)
+    console.log(req.body.referralcode)
     if (!req.body) {
       throw new Error('No data received');
     }
   
-    const { name, email, phone, password } = req.body;
+    const { name, email, phone, password ,referralcode} = req.body;
    
     req.session.userData = {};
     
@@ -123,9 +133,13 @@ const initialinsertUser = async (req, res) => {
         {
           phone: phone,
         },
+       
       ],
     });
-    
+   console.log(referralcode)
+     const refferal = await User.findOne({referralcode:referralcode});
+     console.log(refferal)
+
     if (existingUser) {
       if (existingUser.email === email && existingUser.phone == phone) {
         return res.render("registration", {message:"Email and phone number is already registered"});
@@ -135,9 +149,20 @@ const initialinsertUser = async (req, res) => {
       } else if (existingUser.phone == phone) {
         return res.render("registration", { message: "Phone number is already registered" });
       }
-    } else {
+   
+
+    }  else {
+      
+    if(req.body.referralcode){
+      if(!refferal){
+       return res.render("registration", { message: "refferal offer is not excisting" });
+       }
+     }
       const spassword = await securePassword(password);
       const OTP = generateOTP();
+      
+      // const referralcode = 
+      // console.log(referralcode);
       const userEmail = email;
       
       await sendOTP(userEmail, OTP);
@@ -149,11 +174,15 @@ const initialinsertUser = async (req, res) => {
         is_admin: 0,
         isBlocked: false,
         OTP: OTP,
-        phone: phone
+        phone: phone,
+        referralcode:referralcode
       };
       console.log('redirect')
       return res.redirect('/otp');
     }
+
+  
+
   } catch (error) {
     console.log(error.message);
     return res.status(500).send('Internal Server Error');
@@ -203,20 +232,132 @@ const resendandinsert = async(req,res)=>{
 
 const insertuser = async(req,res)=>{
   try{
+    console.log('chakkara')
+    console.log(req.session.userData.referralcode)
       const userOTP = req.session.userData.OTP;
+     const referralcd = generateReferralCode();
     if(req.body.otp==userOTP){
       const user = new User({
       name:req.session.userData.name,
       email:req.session.userData.email,
       phone:req.session.userData.phone,
       password:req.session.userData.password,
+      referralcode:referralcd,
       is_admin:0,
       isBlocked:false,
     
     });
    await user.save();
-    res.redirect('/login')
+console.log(user)
+   if (req.session.userData.referralcode) {
+    const findUser = await User.findOne({referralcode:req.session.userData.referralcode})
+    console.log(findUser)
+    // const findUserWallet = await Wallet.findOne({ user: findUser._id });
+ console.log(findUser._id)
+ 
+ let wallet = await Wallet.findOne({ user: findUser._id});
+ if (!wallet) {
+   wallet = await Wallet.create({ user: findUser._id});
+ }
+console.log(wallet)
+        wallet.balance += 100;
+  
+      
+        wallet.transactions.push({
+          amount: 100,
+          type: 'credit', 
+        });
+  
+        await wallet.save();
+ const newUser=await User.findOne({email:req.session.userData.email})
+   const forNewWallet =new Wallet({
+     user:newUser._id,
+     balance:100,
+     transactions:[{
+       amount: 100,
+       type: 'credit',
+     }]
+   })
+   await forNewWallet.save();
+     res.redirect('/login')
+    // if(await Wallet.findOne({ user: findUser._id })!=='null'){
+    //   console.log('diyakk')
+  
+    //   const newUser=await User.findOne({referralcode:req.session.userData.referralcode})
+    //   const NewWallet =new Wallet({
+    //     user:newUser._id,
+    //     balance:100,
+    //     transactions:[{
+    //       amount: 100,
+    //       type: 'credit',
+    //     }]
+    //   })
+    //   await forNewWallet.save();
+      
 
+    //     const forNewWallet =new Wallet({
+    //       user:newUser._id,
+    //       balance:100,
+    //       transactions:[{
+    //         amount: 100,
+    //        type: 'credit',
+    //       }]
+    //     })
+    //     await forNewWallet.save()
+    //     // wallet.balance += order.billTotal;
+  
+      
+    //     // wallet.transactions.push({
+    //     //   amount: order.billTotal,
+    //     //   type: 'credit', 
+    //     // });
+  
+    //     // await wallet.save();
+      
+    // res.redirect('/login')
+    // }else{
+     
+      
+    //   const wallet = await Wallet.findOne(
+    //     { user: findUser._id },
+    
+    //     {
+    //       $inc: { 'wallet.balance': 100 }, 
+    //       $push: { 'wallet.transactions': { amount: 100, type: 'credit' } } 
+    //     },
+    //     { new: true } 
+    //   );
+    //   await wallet.save();
+
+
+    //   const forNewWallet =new Wallet({
+    //     user:newUser._id,
+    //     balance:100,
+    //     transactions:[{
+    //       amount: 100,
+    //      type: 'credit',
+    //     }]
+    //   })
+    //   await forNewWallet.save()
+    //   res.redirect('/login')
+    // }
+      // const updateWallet=await Wallet.findOneAndUpdate({userId:findUser._id},
+      //   {
+      //     $inc:{
+      //       balance:100
+      //     },
+      //     $push:{
+      //       transactions:{
+      //         id:Tid,
+      //         date:date,
+      //         amount:100
+      //       }
+      //     }
+      //   })
+    
+   }
+  res.redirect('/login')
+    
   }else{
     res.render('otp',{message:"your registration has been failed,Enter valid OTP"})
    }
@@ -277,15 +418,78 @@ const verifyLogin = async(req,res)=>{
   }
 }
 
+const googleSignIn = async (req, res) => {
+  try {
+    console.log("google")
+      const email = req.user.email;
+      let userData = await User.findOne({ email: email });
+      console.log("userData:",userData);
 
+      if (userData) {
+        req.session.userId = userData._id; // Set userId in the session
+        if (userData.isBlocked==false) {
+          res.locals.currentUser = userData;
+          res.locals.currentUserId = userData._id;
+          req.session.currentUser = userData;
+          req.session.currentUserId = userData._id;
+          req.session.save();
+        } else {
+          console.error("User is blocked");
+          return res.redirect('/login?error=blocked');
+        }
+      } else {
+        console.error("User not found");
+        res.locals.currentUser = null;
+      }
+      if (!userData) {
+          let nameFromG = req.user.name
+          const user = new User({
+              name: nameFromG.givenName + " "+ nameFromG.familyName,
+              email: req.user.email,
+              is_admin: 0,
+              is_verified: 0,
+              // is_google_auth:1,
+              isBlocked:false
+          })
+          userData = await user.save()
+
+      }
+     
+
+      const userID = userData._id;
+     
+      console.log("google sign in userId is :", userData._id);
+  
+
+      req.session.user_id = userData._id
+      req.session.email = email;
+      req.session.save();
+      const isBlocked = false;
+      const product = await Product.find({isBlocked:isBlocked});
+      const wishlist = await Wishlist .findOne({user: req.session.user_id});
+     const cart = await Cart.findOne({owner: req.session.user_id})
+     const currentDate = new Date();
+      res.render('home',{product, wishlist,cart,currentDate})
+     
+  } catch (error) {
+      console.log(error.message);
+  }
+}
 
 
 const loadhome = async(req,res)=>{
   try{
     const isBlocked = false;
     const product = await Product.find({isBlocked:isBlocked});
-    const wishlist = await Wishlist .findOne({user:req.session.user_id});
-   const cart = await Cart.findOne({owner:req.session.user_id})
+    const  wishlist = await Wishlist .findOne({user:req.session.user_id});
+    if(!wishlist){
+    wishlist= await Wishlist.create({user:req.session.user_id,products:[]})
+    }
+   
+   const cart = await Cart.findOne({owner:req.session.user_id});
+   if(!cart){
+    cart = await Cart.create({owner:req.session.user_id,product:[] })
+   }
    const currentDate = new Date();
     res.render('home',{product, wishlist,cart,currentDate})
    
@@ -713,6 +917,8 @@ const orderview = async(req,res)=>{
 }
 
 
+  
+
   const cancelorder = async (req, res) => {
     try {
       
@@ -729,7 +935,7 @@ const orderview = async(req,res)=>{
           wallet = await Wallet.create({ user: req.session.user_id });
         }
   
-   
+        wallet.user = req.session.user_id
         wallet.balance += order.billTotal;
   
       
@@ -756,7 +962,24 @@ const orderview = async(req,res)=>{
     }
   };
   
+const returnorder = async(req,res)=>{
+  try{
+    console.log('ggggggg')
+    const { id, reason } = req.body;
+    const order = await Order.findById({_id:id});
+    if(order.paymentStatus == 'Success'){
+    
+ 
+  order.requests.push({ type: 'Return', reason: reason, status: 'Pending' });
+  await order.save();
 
+  return res.status(200).json({ message: 'Reason added and status updated successfully' });
+}
+  }
+  catch(error){
+    console.log(error.message)
+  }
+}
 
   const wishlistload = async(req, res) => {
     try {
@@ -845,9 +1068,12 @@ const deletewishlistitem = async(req,res)=>{
 
 const invoicedownload = async (req, res) => {
   try {
+
     const orderId = req.query.id;
     const order = await Order.findOne({ _id: orderId }).populate({ path: 'user', model: "User" });
-  console.log(order)
+    order.items.map(item => {
+      console.log(item.name);
+    });
     const data = {
       "documentTitle": "INVOICE", 
       "currency": "INR",
@@ -873,12 +1099,14 @@ const invoicedownload = async (req, res) => {
           "country": order.deliveryAddress.Country 
       },
     
+    
       "products": order.items.map(item => ({
-        "description": item.productname,
+        "description": item.name,
         "quantity": item.quantity,
         "price": item.price,
        
-    })),
+    }))
+    ,
     "information": {
     
     
@@ -942,6 +1170,8 @@ wishlist,
 deletewishlistitem,
 invoicedownload,
 orderpending,
-updatepayment
+updatepayment,
+googleSignIn,
+returnorder
 
 }
