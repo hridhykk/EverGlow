@@ -1,6 +1,6 @@
 require('dotenv').config()
 const mongoose = require("mongoose");
-mongoose.connect("mongodb://127.0.0.1:27017/user_management_system_EverGlow");
+mongoose.connect(process.env.MONGODB);
 const session=require("express-session")
 const express = require("express");
 const path = require("path");
