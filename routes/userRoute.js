@@ -118,6 +118,8 @@ user_route.post('/returnorder',logSession,userController. returnorder);
 
 
 user_route.get('/invoice',logSession,userController.invoicedownload);
+user_route.get('/',isLogout,userController.loginload);
+
 
 
 
