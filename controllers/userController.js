@@ -24,6 +24,7 @@ const securePassword = async(password)=>{
 
   }catch(error){
     console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
  }
 
@@ -34,7 +35,8 @@ const securePassword = async(password)=>{
     res.redirect('/login')
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 
  }
@@ -88,7 +90,8 @@ const securePassword = async(password)=>{
   return otp;
  
    }catch(error){
-     console.log(error)
+     console.log(error);
+     res.status(500).send('Internal Server Error');
  
    }
  }
@@ -103,7 +106,8 @@ const securePassword = async(password)=>{
     res.render('registration.ejs');
 
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -115,9 +119,7 @@ const securePassword = async(password)=>{
 
 const initialinsertUser = async (req, res) => {
   try {
-    console.log('djbdskjfdshf')
-    console.log(req.body)
-    console.log(req.body.referralcode)
+   
     if (!req.body) {
       throw new Error('No data received');
     }
@@ -136,9 +138,9 @@ const initialinsertUser = async (req, res) => {
        
       ],
     });
-   console.log(referralcode)
+ 
      const refferal = await User.findOne({referralcode:referralcode});
-     console.log(refferal)
+    
 
     if (existingUser) {
       if (existingUser.email === email && existingUser.phone == phone) {
@@ -161,8 +163,7 @@ const initialinsertUser = async (req, res) => {
       const spassword = await securePassword(password);
       const OTP = generateOTP();
       
-      // const referralcode = 
-      // console.log(referralcode);
+  
       const userEmail = email;
       
       await sendOTP(userEmail, OTP);
@@ -177,7 +178,7 @@ const initialinsertUser = async (req, res) => {
         phone: phone,
         referralcode:referralcode
       };
-      console.log('redirect')
+    
       return res.redirect('/otp');
     }
 
@@ -202,7 +203,8 @@ const otpload=async(req,res)=>{
     }, 30000);
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -232,8 +234,8 @@ const resendandinsert = async(req,res)=>{
 
 const insertuser = async(req,res)=>{
   try{
-    console.log('chakkara')
-    console.log(req.session.userData.referralcode)
+ 
+    
       const userOTP = req.session.userData.OTP;
      const referralcd = generateReferralCode();
     if(req.body.otp==userOTP){
@@ -248,18 +250,18 @@ const insertuser = async(req,res)=>{
     
     });
    await user.save();
-console.log(user)
+
    if (req.session.userData.referralcode) {
     const findUser = await User.findOne({referralcode:req.session.userData.referralcode})
-    console.log(findUser)
+ 
     // const findUserWallet = await Wallet.findOne({ user: findUser._id });
- console.log(findUser._id)
+
  
  let wallet = await Wallet.findOne({ user: findUser._id});
  if (!wallet) {
    wallet = await Wallet.create({ user: findUser._id});
  }
-console.log(wallet)
+
         wallet.balance += 100;
   
       
@@ -280,80 +282,7 @@ console.log(wallet)
    })
    await forNewWallet.save();
      res.redirect('/login')
-    // if(await Wallet.findOne({ user: findUser._id })!=='null'){
-    //   console.log('diyakk')
-  
-    //   const newUser=await User.findOne({referralcode:req.session.userData.referralcode})
-    //   const NewWallet =new Wallet({
-    //     user:newUser._id,
-    //     balance:100,
-    //     transactions:[{
-    //       amount: 100,
-    //       type: 'credit',
-    //     }]
-    //   })
-    //   await forNewWallet.save();
-      
-
-    //     const forNewWallet =new Wallet({
-    //       user:newUser._id,
-    //       balance:100,
-    //       transactions:[{
-    //         amount: 100,
-    //        type: 'credit',
-    //       }]
-    //     })
-    //     await forNewWallet.save()
-    //     // wallet.balance += order.billTotal;
-  
-      
-    //     // wallet.transactions.push({
-    //     //   amount: order.billTotal,
-    //     //   type: 'credit', 
-    //     // });
-  
-    //     // await wallet.save();
-      
-    // res.redirect('/login')
-    // }else{
-     
-      
-    //   const wallet = await Wallet.findOne(
-    //     { user: findUser._id },
-    
-    //     {
-    //       $inc: { 'wallet.balance': 100 }, 
-    //       $push: { 'wallet.transactions': { amount: 100, type: 'credit' } } 
-    //     },
-    //     { new: true } 
-    //   );
-    //   await wallet.save();
-
-
-    //   const forNewWallet =new Wallet({
-    //     user:newUser._id,
-    //     balance:100,
-    //     transactions:[{
-    //       amount: 100,
-    //      type: 'credit',
-    //     }]
-    //   })
-    //   await forNewWallet.save()
-    //   res.redirect('/login')
-    // }
-      // const updateWallet=await Wallet.findOneAndUpdate({userId:findUser._id},
-      //   {
-      //     $inc:{
-      //       balance:100
-      //     },
-      //     $push:{
-      //       transactions:{
-      //         id:Tid,
-      //         date:date,
-      //         amount:100
-      //       }
-      //     }
-      //   })
+   
     
    }
   res.redirect('/login')
@@ -378,7 +307,8 @@ const loginload = async(req,res)=>{
   res.render('login')
   }
     catch(error){
-      console.log(error.message)
+      console.log(error.message);
+      res.status(500).send('Internal Server Error');
     }
 }
 
@@ -404,26 +334,27 @@ const verifyLogin = async(req,res)=>{
         }
         else{
         res.render('login',{message:'email and password is incorrect '})
-        console.log("error2")
+       
       }
 
     }else{
       res.render('login',{message:'email is not excisting'})
-      console.log("error122222")
+     
     }
    
 
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
 const googleSignIn = async (req, res) => {
   try {
-    console.log("google")
+   
       const email = req.user.email;
       let userData = await User.findOne({ email: email });
-      console.log("userData:",userData);
+     
 
       if (userData) {
         req.session.userId = userData._id; // Set userId in the session
@@ -458,7 +389,7 @@ const googleSignIn = async (req, res) => {
 
       const userID = userData._id;
      
-      console.log("google sign in userId is :", userData._id);
+      
   
 
       req.session.user_id = userData._id
@@ -473,6 +404,7 @@ const googleSignIn = async (req, res) => {
      
   } catch (error) {
       console.log(error.message);
+      res.status(500).send('Internal Server Error');
   }
 }
 
@@ -495,7 +427,8 @@ const loadhome = async(req,res)=>{
    
 
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -514,6 +447,7 @@ const product = await Product.findOne({_id:id})
   }
   catch(error){
     console.log(error.message)
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -569,36 +503,7 @@ const shopload = async (req, res) => {
   }
 };
 
-// const useraccountload = async (req, res) => {
-//   try {
-//     const id = req.session.user_id;
-//     const currentPage = parseInt(req.query.page) || 1;
-//     const limit = 10; // Number of orders per page
-//     const startIndex = (currentPage - 1) * limit;
 
-//     // Fetch orders with pagination
-//     const order = await Order.find({ user: id })
-//       .skip(startIndex)
-//       .limit(limit)
-//       .sort({ createdAt: -1 }); // Sort by descending order of creation date
-
-//     // Fetch other user-related data
-//     const address = await Address.find({ user: id });
-//     const user = await User.findOne({ _id: id });
-//     const wallet = await Wallet.findOne({ user: req.session.user_id });
-//     const wishlist = await Wishlist.findOne({ user: req.session.user_id });
-//     const cart = await Cart.findOne({ owner: req.session.user_id });
-
-//     // Count total number of orders for pagination
-//     const totalOrders = await Order.countDocuments({ user: id });
-//     const totalPages = Math.ceil(totalOrders / limit);
-   
-//     res.render('useraccount', { user, address, order, wallet, cart, wishlist, currentPage, totalPages, startIndex });
-//   } catch (error) {
-//     console.log(error.message);
-//     res.status(500).send('Server Error');
-//   }
-// }
 
 
 const useraccountload = async (req,res)=>{
@@ -614,13 +519,14 @@ const useraccountload = async (req,res)=>{
   res.render('useraccount',{user,address,order,wallet,cart,wishlist})
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
 const edituseraccountload = async(req,res)=>{
   try{
-    console.log(req.session.user_id)
+    
     const id = req.session.user_id
     const wishlist = await Wishlist .findOne({user:req.session.user_id});
    const cart = await Cart.findOne({owner:req.session.user_id})
@@ -628,13 +534,14 @@ const edituseraccountload = async(req,res)=>{
   res.render('edituseraccount',{user,wishlist,cart})
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
 const edituseraccount = async(req,res)=>{
   try{
-    console.log(req.query.id)
+    
   const id = req.session.user_id;
    await User.findByIdAndUpdate({_id:id},
     {$set:{
@@ -646,7 +553,8 @@ const edituseraccount = async(req,res)=>{
      res.redirect('/useraccount')
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -659,7 +567,8 @@ const addaddress = async (req,res)=>{
   res.render('addaddress',{user,wishlist,cart})
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
 
   }
 
@@ -674,7 +583,8 @@ const addressload = async (req,res)=>{
   res.render('address',{address,wishlist,cart})
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -715,21 +625,22 @@ const insertaddress = async (req, res) => {
 const editaddress =async(req,res)=>{
   try{
     const id = req.query.id;
-    console.log(id)
+   
     const address = await Address.findOne({_id:id});
     const wishlist = await Wishlist .findOne({user:req.session.user_id});
    const cart = await Cart.findOne({owner:req.session.user_id})
     res.render('editaddress',{address,wishlist,cart})
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
  const editaddresscheckout  =async(req,res)=>{
   try{
     const id = req.query.id;
-    console.log(id)
+   
     const address = await Address.findOne({_id:id});
     const wishlist = await Wishlist .findOne({user:req.session.user_id});
    const cart = await Cart.findOne({owner:req.session.user_id})
@@ -744,7 +655,7 @@ const updateeditaddress = async (req,res)=>{
   try{
     
   const id = req.body.id;
-  console.log(id);
+  
 
   const address = await Address.findByIdAndUpdate({_id:id},
    {$set: {addresses: {HouseNo: req.body.HouseNo,
@@ -759,7 +670,7 @@ const updateeditaddress = async (req,res)=>{
   
   }
 })
-console.log('jbdckjsdjbvksdv')
+
 res.redirect('/useraccount')
 
    }
@@ -773,7 +684,7 @@ const updateeditaddresscheckout = async (req,res)=>{
   try{
     
   const id = req.body.id;
-  console.log(id);
+  
 
   const address = await Address.findByIdAndUpdate({_id:id},
    {$set: {addresses: {HouseNo: req.body.HouseNo,
@@ -788,7 +699,7 @@ const updateeditaddresscheckout = async (req,res)=>{
   
   }
 })
-console.log('jbdckjsdjbvksdv')
+
 res.redirect('/checkout')
 
    }
@@ -821,7 +732,8 @@ try{
  res.render('order',{order,wishlist,cart})
 }
 catch(error){
-  console.log(error.message)
+  console.log(error.message);
+  res.status(500).send('Internal Server Error');
 }
 }
 
@@ -835,7 +747,8 @@ const orderdetails = async (req,res)=>{
     res.render('orderdetails',{order})
   }
 catch(error){
-  console.log(error.message)
+  console.log(error.message);
+  res.status(500).send('Internal Server Error');
 }  
 }
 
@@ -845,7 +758,8 @@ const orderview = async(req,res)=>{
     const order = await Order.findOne({_id:orderId})
  res.render('orderview',{order})
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }}
 
 
@@ -880,14 +794,15 @@ const orderview = async(req,res)=>{
   res.json({status: "success", order: order});
   
     }catch(error){
-      console.log(error.message)
+      console.log(error.message);
+      res.status(500).send('Internal Server Error');
     }
   }
   
 
   const updatepayment = async (req, res) => {
     try {
-        console.log('helloss');
+        
         const razorpaySecret = "4zspRlSBEVt30znhYdnWTJ5L";
         const body = req.body.paymentData.razorpay_order_id + "|" + req.body.paymentData.razorpay_payment_id;
         const expectedSignature = crypto
@@ -896,7 +811,7 @@ const orderview = async(req,res)=>{
             .digest("hex");
 
         if (expectedSignature === req.body.paymentData.razorpay_signature) {
-            console.log("Corrected Verify");
+           
             const orderId = req.body.paymentData.orderId;
             const order = await Order.findByIdAndUpdate({ _id: orderId }, {
                 $set: {
@@ -909,10 +824,12 @@ const orderview = async(req,res)=>{
             res.json({success:true,message:"order added successfuly"});
         } else {
             console.log("Incorrect Signature");
+
         }
 
     } catch (error) {
         console.log(error.message);
+        res.status(500).send('Internal Server Error');
     }
 }
 
@@ -964,7 +881,7 @@ const orderview = async(req,res)=>{
   
 const returnorder = async(req,res)=>{
   try{
-    console.log('ggggggg')
+
     const { id, reason } = req.body;
     const order = await Order.findById({_id:id});
     if(order.paymentStatus == 'Success'){
@@ -977,14 +894,14 @@ const returnorder = async(req,res)=>{
 }
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
   const wishlistload = async(req, res) => {
     try {
-      console.log('vbsgjsbffsjbkj');
-      console.log( req.query.id)
+    
       const userId = req.session.user_id;
       const productId = req.query.id;
   
@@ -1017,10 +934,7 @@ const returnorder = async(req,res)=>{
 const wishlist = async(req,res)=>{
   try{
     
-        //   const unwindedWishlist = await Wishlist.aggregate([
-        //       { $unwind: "$product" }
-        //   ]);
-        //  console.log(unwindedWishlist);
+     
         const id=req.session.user_id;
 const wishlist = await Wishlist.findOne({user:id}).populate({path:"product",model:"Product"});
 
@@ -1029,7 +943,8 @@ const wishlist = await Wishlist.findOne({user:id}).populate({path:"product",mode
 res.render('wishlist',{wishlist,cart})
   }
   catch(error){
-    console.log(error)
+    console.log(error);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -1038,7 +953,7 @@ res.render('wishlist',{wishlist,cart})
 const deletewishlistitem = async(req,res)=>{
   try{
     const id = req.query.id;
-    console.log(id)
+ 
 
     const wishlist = await  Wishlist.findOne({ user: req.session.user_id });
 
@@ -1059,7 +974,8 @@ const deletewishlistitem = async(req,res)=>{
       return res.status(404).json({ message: "item not found" });
     }
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -1071,9 +987,7 @@ const invoicedownload = async (req, res) => {
 
     const orderId = req.query.id;
     const order = await Order.findOne({ _id: orderId }).populate({ path: 'user', model: "User" });
-    order.items.map(item => {
-      console.log(item.name);
-    });
+   
     const data = {
       "documentTitle": "INVOICE", 
       "currency": "INR",
@@ -1134,7 +1048,6 @@ const invoicedownload = async (req, res) => {
 
 
 
-// console.log('PDF base64 string: ', result.pdf);
 
 module.exports={
   securePassword,

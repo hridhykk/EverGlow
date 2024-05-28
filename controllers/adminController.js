@@ -16,7 +16,8 @@ const loginLoad = async(req,res)=>{
    res.render('adminlogin')
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -33,18 +34,19 @@ if(userData){
  
   
   }else{
-    console.log("error2")
+   
     res.render('adminlogin',{message:"email and password is incorrect"})
   }
 
 }else{
   res.render('adminlogin',{message:"email and password is  incorrect"})
-  console.log('error1')
+ 
 
 }
   }
   catch(error){
-console.log(error.message)
+console.log(error.message);
+res.status(500).send('Internal Server Error');
   }
 }
 
@@ -55,11 +57,11 @@ console.log(error.message)
 const userload = async (req, res) => {
   try {
       const currentPage = parseInt(req.query.page) || 1;
-      const limit = 2;
+      const limit = 10;
       const startIndex = (currentPage - 1) * limit;
 
    
-      console.log(req.query.searchTerm)
+      
       if (req.query.searchTerm) {
           const searchTerm = req.query.searchTerm;
         
@@ -84,25 +86,7 @@ const userload = async (req, res) => {
 }
 
 
-//  const userload = async(req,res)=>{
-//   try{
-//     console.log(req.query.page);
-//     const currentPage = parseInt(req.query.page) || 1;
-//     const limit = 2; 
-//     const startIndex = (currentPage - 1) * limit;
-//     const userlist = await User.find().skip(startIndex).limit(limit);
-//     const totalUsers = await User.countDocuments();
-//     const totalPages = Math.ceil(totalUsers / limit);
-//     res.render('userlist', { userlist, currentPage, totalPages });
-//  }
-//   catch(error){
-//     console.log(error.message)
-//   }
 
-//  }
-  
-
- 
  
  const userblock = async(req,res)=>{
   try{
@@ -122,7 +106,10 @@ const userload = async (req, res) => {
       }
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
+
+
   }
  } 
 
@@ -133,7 +120,8 @@ const userload = async (req, res) => {
     res.redirect('/admin/')
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 
  }
@@ -153,35 +141,27 @@ const adminorderlist = async (req, res) => {
   }
 }
 
-//  const adminorderlist = async(req,res)=>{
-//   try{
-//     const order = await Order.find().populate({path:'user',model:'User'});
 
-//     res.render('adminorderlist',{order})
-  
-//   }catch(error){
-//     console.log(error.message)
-//   }
-//  }
 
 const adminorderdetails = async(req,res)=>{
   try{
-    console.log('kdbksd')
+ 
     const orderId = req.query.id
     const orders = await Order.findOne({_id:orderId}).populate({path:'user',model:'User'});
 
     res.render('adminorderdetails',{orders})
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
 const updateOrderStatus = async (req, res) => {
   try {
-      console.log('hi');
+    
       const { orderId, newStatus } = req.body;
-      console.log(orderId, newStatus);
+      // console.log(orderId, newStatus);
       const order = await Order.findByIdAndUpdate(orderId, { status: newStatus }, { new: true });
 
       if (!order) {
@@ -199,7 +179,7 @@ const updateOrderStatus = async (req, res) => {
 const acceptreturn = async (req,res)=>{
   try{
 
-    console.log("hridya diya")
+   
     const orderId = req.query.id;
       const returnOrder = await Order.findOne({_id:orderId});
     
@@ -231,7 +211,8 @@ const acceptreturn = async (req,res)=>{
     await canceledOrder.save();
 res.status(200).json({ success: true, message: 'Product cancel: Stock updated' });
   } catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -240,7 +221,7 @@ const acceptcancel = async (req, res) => {
   try {
     const orderId = req.query.id;
     
-    // Find the canceled order
+   
     const canceledOrder = await Order.findOne({_id:orderId});
     
     if (!canceledOrder) {
@@ -249,17 +230,17 @@ const acceptcancel = async (req, res) => {
 
     canceledOrder.requests = canceledOrder.requests.map(request => {
       if (request.type === 'Cancel' && request.status === 'Pending') {
-        return { ...request, status: 'Accepted' }; // or you can remove the request
+        return { ...request, status: 'Accepted' }; 
       }
       return request;
     });
 
-    // Iterate through the items in the canceled order
+   
     for (const item of canceledOrder.items) {
       const productId = item.productId;
       const quantity = item.quantity;
 
-      // Find the product and update its count in stock
+    
       const product = await Product.findById(productId);
 
       if (!product) {
@@ -284,7 +265,7 @@ const acceptcancel = async (req, res) => {
 
 const addcoupen = async(req,res)=>{
   try{
-  // const coupens = await Coupen.findOne()
+ 
 res.render('addcoupon')
   }catch(error){
     console.log(error.message)
@@ -309,7 +290,8 @@ const coupenload = async(req,res)=>{
 await coupon.save();
 res.redirect('/admin/couponpage')
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -348,14 +330,7 @@ const orderlist = async (req, res) => {
 
 
 
-// const orderlist = async (req,res)=>{
-//   try{
-//     const order = await Order.find().populate({path:'user',model:'User'});
-// res.render('orderlist',{order})
-//   }catch(error){
-//     console.log(error.message)
-//   }
-// }
+
 
 async function salesReport(date){
   try{
@@ -512,10 +487,10 @@ async function salesReport(date){
   
           start = end + 1;
   
-          // Calculate new end based on the new start
+         
           end = start + 6;
   
-          // If end exceeds the number of days in the month, set it to the last day of the month
+        
           if (end > numDays) {
               end = numDays;
           }

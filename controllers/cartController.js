@@ -1,10 +1,8 @@
-// const session = require('express-session');
-// const User=require('../models/userModel');
+
 const Address = require('../models/addressModel');
 const Product = require('../models/productModel');
 const Cart = require('../models/cartModel');
-// const bcrypt=require("bcrypt");
-// const nodemailer = require('nodemailer');
+
 const randomstring = require('randomstring');
 const Order = require('../models/orderModel');
 const Coupon = require('../models/couponModel');
@@ -17,7 +15,7 @@ const crypto = require('crypto');
 
 const cartload = async (req, res) => {
   try {
-    console.log('nd')
+   
     const userId = req.session.user_id; 
     const productId = req.query.id;
 
@@ -36,7 +34,7 @@ const cartload = async (req, res) => {
     
     if (existingItemIndex !== -1) {
       if (cart.items[existingItemIndex].quantity >= product.countinstock) {
-        console.log('out of stock')
+       
         return res.status(200).json({ success: false, message: 'Product is out of stock' });
       } else if (cart.items[existingItemIndex].quantity >= 5) {
         return res.status(200).json({ success: false, message: 'Cannot add more than 5 products in cart' });
@@ -92,7 +90,7 @@ const cartpageload = async(req,res)=>{
   
 const updateQuantity = async (req, res) => {
   try {
-  console.log('kjskjdfgk')
+ 
     const userId = req.session.user_id;
 
     let cart = await Cart.findOne({ owner: userId }).populate({ path: 'items.productId', model: 'Product' });
@@ -103,7 +101,7 @@ const updateQuantity = async (req, res) => {
     const { productId, need } = req.body;
     const cartItem = cart.items.find(item => item.productId._id.toString() === productId);
     if (!cartItem) {
-        console.log('Cart item not found in update cart');
+        
         return res.status(404).json({ success: false, message: "Cart item not found" });
     }
 
@@ -138,7 +136,7 @@ const updateQuantity = async (req, res) => {
 const deletecartitem = async (req, res) => {
   try {
     const id = req.query.id;
-    console.log(id)
+
 
     const cart = await Cart.findOne({ owner: req.session.user_id }).populate({path:'items.productId',model:'Product'});
 
@@ -163,7 +161,7 @@ const deletecartitem = async (req, res) => {
 
         return res.status(200).json({ success: true, message: "Item deleted successfully" });
       } else {
-        console.log('Item not found in the cart');
+        // console.log('Item not found in the cart');
         return res.status(404).json({ message: "Item not found in the cart" });
       }
     } else {
@@ -236,8 +234,7 @@ function generateoId(){
  
 
    let cart = await Cart.findOne({ owner: req.session.user_id }).populate({path:'items.productId',model:'Product'});
-  cart.items.forEach(item=>{
-   console.log(item.productId.productname)});
+ 
   
 
    const items = cart.items.map(item => ({
@@ -287,7 +284,7 @@ function generateoId(){
 
   res.json({status: "COD",message:"order added successfuly",cart:cart,oId:oId});
   }else{
-    console.log("errorr")
+  
   }
   } catch (error) {
       console.error(error);
@@ -311,7 +308,7 @@ function generateoId(){
       .digest("hex");
 
     if (expectedSignature === req.body.paymentData.razorpay_signature) {
-      console.log("Corrected Verify");
+  
       const deliveryAddress = req.body.paymentData.selectedAddress;
       const parsedDeliveryAddress = JSON.parse(deliveryAddress);
        const cart = await Cart.findOne({owner:req.session.user_id}).populate({path:'items.productId',model:'Product'})
@@ -352,7 +349,7 @@ function generateoId(){
     cart.billTotal = 0;
     cart.couponapplied = false;
     cart.discountPrice = 0;
-    console.log(cart._id );
+   
       await cart.save();
       await newOrder.save();
 
@@ -440,12 +437,13 @@ const ordersuccess = async (req,res)=>{
 try{
 
   const id = req.query.oId;
-  console.log("cart id  is this",id)
+ 
   const order = await Order.findOne({oId:id})
  
 res.render('ordersuccess',{order})
 }catch(error){
-  console.log(error)
+  console.log(error);
+  res.status(500).send('Internal Server Error');
 }
 }
 
@@ -475,7 +473,8 @@ res.redirect('/cartpage')
 // return res.status(200).json({ success: true, message: 'Cart not found' });
 
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
@@ -483,7 +482,7 @@ const removecoupon = async(req,res)=>{
   try{
 
 const id = req.query.id;
-console.log(id)
+
 await Cart.findByIdAndUpdate({_id:id},{$set:{
 couponapplied:false,
 discountPrice:0,
@@ -506,7 +505,8 @@ const coupons= Fullcoupon.filter(coupon => coupon.usersUsed.includes(userId));
         
 res.json({success:true});
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 

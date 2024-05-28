@@ -20,7 +20,8 @@ const categoryload = async(req,res)=>{
 
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
  }
 
@@ -32,7 +33,8 @@ const categoryload = async(req,res)=>{
 
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
  }
 
@@ -49,7 +51,7 @@ const categoryload = async(req,res)=>{
 
     const categorys = new Category({ name, description });
     const savedCategory = await categorys.save();
-    console.log(savedCategory);
+    
 
     if (savedCategory) {
       return res.redirect('/admin/category');
@@ -64,24 +66,7 @@ const categoryload = async(req,res)=>{
 
 
 
-// const insertcategory = async(req,res)=>{
-//   try{
-    
-//  const productcategory = new Category({
-//   name:req.body.name,
-//   description:req.body.description,
-//   is_active:0
 
-//   })
-
-//   const Data = await productcategory.save()
-//   res.redirect('/admin/category')
-  
-//   }
-//   catch(error){
-//     console.log(error.message)
-//   }
-// }
 
  const editcategorypage = async(req,res)=>{
   try{
@@ -103,7 +88,7 @@ const categoryload = async(req,res)=>{
  const updatecategory = async(req,res)=>{
   try{
     const id = req.query.id;
-    console.log(req.query.id);
+    
    await Category.findByIdAndUpdate({ _id:id},
     {$set:{name:req.body.name,
       description:req.body.description,
@@ -111,7 +96,8 @@ const categoryload = async(req,res)=>{
   res.redirect('/admin/category');
 }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
  }
 
@@ -125,7 +111,8 @@ const categoryload = async(req,res)=>{
 
   }
   catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
  }
 
@@ -137,7 +124,8 @@ const categoryload = async(req,res)=>{
     const currentDate = new Date();
  res.render('categoryofferpage',{category,currentDate})
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
 
   }
  }
@@ -177,7 +165,7 @@ const categoryload = async(req,res)=>{
 
 const removecategoryoffer = async(req,res)=>{
   try{
-    console.log("hello2")
+   
     const id = req.query.id;
     
  await Category.findByIdAndUpdate({_id:id},{$set:{
@@ -188,7 +176,8 @@ const removecategoryoffer = async(req,res)=>{
  }});
  res.json({success:true});
   }catch(error){
-    console.log(error.message)
+    console.log(error.message);
+    res.status(500).send('Internal Server Error');
   }
 }
 
