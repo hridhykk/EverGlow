@@ -534,23 +534,18 @@
                 <h6>Order ID:<%=order.oId%></h6>
                 <br>
                 <h6>Order Date:<%= new Date(order.orderDate).toLocaleDateString()  %></h6>
-                <%if(order.paymentStatus==='Pending'){%>
+                <% if(order.paymentStatus === 'Pending') { %>
                     <p class="text-danger">Payment : pending</p>
-                    <button class="btn btn-md btn-black-default-hover"  onclick="proceedToPayment('<%= order._id %>')" >Continue to Payment</button>
-                 
-                   
-                            <br>
-                <%}else {%>
-                    <p class="text-danger">Payment : failed</p>
-                   
-                       
-                    
-                    <button class="btn btn-md btn-black-default-hover"  onclick="proceedToPayment('<%= order._id %>')" >Continue to Payment</button>
-         
-           
+                    <button class="btn btn-md btn-black-default-hover" onclick="proceedToPayment('<%= order._id %>')">Continue to Payment</button>
                     <br>
-
-               <%}%>
+                <% } else if(order.paymentStatus === 'Success') { %>
+                    <p class="text-success">Payment : success</p>
+                <% } else { %>
+                    <p class="text-danger">Payment : failed</p>
+                    <button class="btn btn-md btn-black-default-hover" onclick="proceedToPayment('<%= order._id %>')">Continue to Payment</button>
+                    <br>
+                <% } %>
+                
                 <article class="card">
                     <div class="card-body row">
                         <div class="col"> <strong>Estimated Delivery time:</strong> <br><% 

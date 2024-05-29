@@ -157,21 +157,27 @@ const adminorderdetails = async(req,res)=>{
   }
 }
 
+
 const updateOrderStatus = async (req, res) => {
   try {
-    
-      const { orderId, newStatus } = req.body;
-      // console.log(orderId, newStatus);
-      const order = await Order.findByIdAndUpdate(orderId, { status: newStatus }, { new: true });
+    const { orderId, newStatus } = req.body;
+   
+    const order = await Order.findById(orderId);
+    if (!order) {
+      return res.status(404).json({ error: 'Order not found' });
+    }
 
-      if (!order) {
-          return res.status(404).json({ error: 'Order not found' });
-      }
+    let updateData = { status: newStatus };
+    if (newStatus === 'Delivered') {
+      updateData.paymentStatus = 'Success';
+    }
 
-      return res.status(200).json({ success: true, message: 'Order status updated successfully', order: order });
+    const updatedOrder = await Order.findByIdAndUpdate(orderId, updateData, { new: true });
+
+    return res.status(200).json({ success: true, message: 'Order status updated successfully', order: updatedOrder });
   } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: 'Internal server error' });
+    console.error(error);
+    return res.status(500).json({ error: 'Internal server error' });
   }
 };
 
@@ -200,7 +206,7 @@ const acceptreturn = async (req,res)=>{
     const product = await Product.findById(productId);
 
       if (!product) {
-        console.log('Product not found for productId:', productId);
+        console.log('Product not found for productId:');
         continue; 
       }   
       product.countinstock += quantity;
@@ -244,7 +250,7 @@ const acceptcancel = async (req, res) => {
       const product = await Product.findById(productId);
 
       if (!product) {
-        console.log('Product not found for productId:', productId);
+        console.log('Product not found for productId:');
         continue; 
       }
        product.countinstock += quantity;
@@ -401,7 +407,7 @@ async function salesReport(date){
         let averageSales = orders.length / date; 
         let averageRevenue = totalRevenue / date; 
    
-       console.log(productEntered);
+      
         return {
           users,
           totalOrders: orders.length,
@@ -689,7 +695,7 @@ const adminDashboard = async(req,res)=>{
     let allProductsCount = await Product.countDocuments();
     let orders=await Order.find().populate({path:'user',model:'User'}).limit(5);
 
-    // console.log(monthly,yearly);
+
     
     let orderChart = await orderPieChart();
     

@@ -245,7 +245,7 @@ function generateoId(){
     quantity: item.quantity,
     price:item.price
   }))
-  console.log("hridjysaaaa",items)
+ 
 
  
    const oId = generateoId();
