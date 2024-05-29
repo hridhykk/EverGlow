@@ -133,7 +133,7 @@ const adminorderlist = async (req, res) => {
     const startIndex = (currentPage - 1) * limit;
     const totalOrders = await Order.countDocuments();
     const totalPages = Math.ceil(totalOrders / limit);
-    const order = await Order.find().populate({ path: 'user', model: 'User' }).skip(startIndex).limit(limit);
+    const order = await Order.find().populate({ path: 'user', model: 'User' }).skip(startIndex).limit(limit).sort({ _id: -1 });
     res.render('adminorderlist', { order, currentPage, totalPages, startIndex }); // Pass currentPage here
   } catch (error) {
     console.log(error.message);
